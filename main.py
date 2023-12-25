@@ -6,35 +6,30 @@ import math
 import pygame
 from pygame.math import Vector2
 
-if __name__ == '__main__':
-    pygame.init()
-    size = width, height = 600, 600
-    screen = pygame.display.set_mode(size)
+
+pygame.init()
+size = width, height = 600, 600
+screen = pygame.display.set_mode(size)
 
 
-    def load_image(name, colorkey=None):
-        fullname = os.path.join('data', name)
-        if not os.path.isfile(fullname):
-            print(f"Файл с изображением '{fullname}' не найден")
-            sys.exit()
-        image = pygame.image.load(fullname)
+def load_image(name, colorkey=None):
+    fullname = os.path.join('data', name)
+    if not os.path.isfile(fullname):
+        print(f"Файл с изображением '{fullname}' не найден")
+        sys.exit()
+    image = pygame.image.load(fullname)
 
-        if colorkey is not None:
-            image = image.convert()
-            if colorkey == -1:
-                colorkey = image.get_at((0, 0))
-            image.set_colorkey(colorkey)
-        else:
-            image = image.convert_alpha()
-        return image
-
-
-    enemy_image = pygame.transform.scale(load_image('enemy_image.png', colorkey='white'), (40, 40))
-    f = open("data/levels.txt", encoding="utf8")
-    levels_enemies = f.readlines()
+    if colorkey is not None:
+        image = image.convert()
+        if colorkey == -1:
+            colorkey = image.get_at((0, 0))
+        image.set_colorkey(colorkey)
+    else:
+        image = image.convert_alpha()
+    return image
 
 
-    class Enemy(pygame.sprite.Sprite):
+class Enemy(pygame.sprite.Sprite):
         def __init__(self, way_points):
             super().__init__(all_sprites, enemy_group)
             self.waypoints = way_points
@@ -74,6 +69,11 @@ if __name__ == '__main__':
             self.rect = self.image.get_rect()
             self.rect.center = self.pos
 
+
+if __name__ == '__main__':
+    enemy_image = pygame.transform.scale(load_image('enemy_image.png', colorkey='white'), (40, 40))
+    f = open("data/levels.txt", encoding="utf8")
+    levels_enemies = f.readlines()
 
     all_sprites = pygame.sprite.Group()
     enemy_group = pygame.sprite.Group()
