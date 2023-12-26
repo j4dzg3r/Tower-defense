@@ -31,7 +31,7 @@ def load_image(name, colorkey=None):
 
 
 class Car(pygame.sprite.Sprite):
-    image = original_image = load_image("enemy_image.png", colorkey="white")
+    image = original_image = load_image("point.png", colorkey="white")
 
     def __init__(self, way_points):
         super().__init__(all_sprites)
@@ -49,13 +49,11 @@ class Car(pygame.sprite.Sprite):
         self.in_rotation = False
         self.rotation_angle = 0
 
-
     def rotate_right(self, rad):
-        print("pre", self.pos, self.angle, self.rotation_angle, self.rect.x, self.rect.y)
+        # print("pre", self.pos, self.angle, self.rotation_angle, self.rect.x, self.rect.y)
         if self.rotation_angle <= 90:
-            pygame.time.wait(5)
-            self.rect.x = rad * math.cos(math.radians(self.angle))//1 + self.rotation_x
-            self.rect.y = rad * math.sin(math.radians(self.angle))//1 + self.rotation_y + rad
+            self.rect.x = rad * math.cos(math.radians(self.angle)) + self.rotation_x
+            self.rect.y = rad * math.sin(math.radians(self.angle)) + self.rotation_y
             self.image = pygame.transform.rotate(self.original_image, -self.angle - 90)
             self.angle += 1
             self.rotation_angle += 1
@@ -74,7 +72,6 @@ class Car(pygame.sprite.Sprite):
             self.target = Vector2(self.waypoints[self.target_waypoint])
             self.movement = self.target - self.pos
 
-
     def move(self):
         if self.target_waypoint < len(self.waypoints):
             self.target = Vector2(self.waypoints[self.target_waypoint])
@@ -89,9 +86,14 @@ class Car(pygame.sprite.Sprite):
             if dist >= self.speed:
                 if self.target_waypoint < len(self.waypoints) - 1 and dist < 60:
                     self.in_rotation = True
-                    self.rotation_x = self.rect.x
-                    self.rotation_y = self.rect.y
-                    print('Rotation BEGINS')
+                    prev_wp = self.waypoints[self.target_waypoint - 1]
+                    this_wp = self.waypoints[self.target_waypoint]
+                    next_wp = self.waypoints[self.target_waypoint + 1]
+                    signs = ((next_wp[0] - prev_wp[0]) // abs(next_wp[0] - prev_wp[0]),
+                             (next_wp[1] - prev_wp[1]) // abs(next_wp[1] - prev_wp[1]))
+                    res_signs = {(1, 1): (-1, 1), (1, -1): (1, 1), (-1, 1): (-1, -1), (-1, -1): (1, -1)}[signs]
+                    self.rotation_x = this_wp[0] + w * res_signs[0]
+                    self.rotation_y = this_wp[1] + w * res_signs[1]
                 else:
                     self.pos += self.movement.normalize() * self.speed
             else:
@@ -102,9 +104,9 @@ class Car(pygame.sprite.Sprite):
             self.rect.topleft = self.pos
         pygame.time.wait(10)
 
-
     def update(self):
         self.move()
+
 
 waypoints = [(100, RoY), (400, RoY), (400, 400), (200, 400), (200, 200), (300, 200), (300, 300)]
 all_sprites = pygame.sprite.Group()
@@ -117,9 +119,6 @@ while running:
         if event.type == pygame.QUIT:
             running = False
     # screen.fill("white")
-    for point in waypoints:
-        screen.fill('red', (point[0], point[1], 4, 4))
-
 
     all_sprites.update()
     all_sprites.draw(screen)
