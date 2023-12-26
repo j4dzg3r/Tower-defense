@@ -3,85 +3,125 @@ import sys
 import math
 
 import pygame
+from pygame.math import Vector2
 
-if __name__ == '__main__':
-    pygame.init()
-    size = 600, 400
+pygame.init()
+size = 600, 600
 
-    clock = pygame.time.Clock()
-    screen = pygame.display.set_mode(size)
-    RoX, RoY, w = 300, 50, 60
+clock = pygame.time.Clock()
+screen = pygame.display.set_mode(size)
+RoX, RoY, w = 300, 50, 60
 
 
-    def load_image(name, colorkey=None):
-        fullname = os.path.join('data', name)
-        if not os.path.isfile(fullname):
-            print(f"Файл с изображением '{fullname}' не найден")
-            sys.exit()
-        image = pygame.image.load(fullname)
+def load_image(name, colorkey=None):
+    fullname = os.path.join('data', name)
+    if not os.path.isfile(fullname):
+        print(f"Файл с изображением '{fullname}' не найден")
+        sys.exit()
+    image = pygame.image.load(fullname)
 
-        if colorkey is not None:
-            image = image.convert()
-            if colorkey == -1:
-                colorkey = image.get_at((0, 0))
-            image.set_colorkey(colorkey)
+    if colorkey is not None:
+        image = image.convert()
+        if colorkey == -1:
+            colorkey = image.get_at((0, 0))
+        image.set_colorkey(colorkey)
+    else:
+        image = image.convert_alpha()
+    return image
+
+
+class Car(pygame.sprite.Sprite):
+    image = original_image = load_image("enemy_image.png", colorkey="white")
+
+    def __init__(self, way_points):
+        super().__init__(all_sprites)
+        self.waypoints = way_points
+        self.target_waypoint = 1
+        self.pos = Vector2(self.waypoints[0])
+        self.speed = 2
+        self.angle = -90
+
+        self.original_image = Car.original_image
+        self.image = pygame.transform.rotate(self.original_image, self.angle + 90)
+        self.rect = self.image.get_rect()
+        self.rect.y = self.pos[1]
+
+        self.in_rotation = False
+        self.rotation_angle = 0
+
+
+    def rotate_right(self, rad):
+        print("pre", self.pos, self.angle, self.rotation_angle, self.rect.x, self.rect.y)
+        if self.rotation_angle <= 90:
+            pygame.time.wait(5)
+            self.rect.x = rad * math.cos(math.radians(self.angle))//1 + self.rotation_x
+            self.rect.y = rad * math.sin(math.radians(self.angle))//1 + self.rotation_y + rad
+            self.image = pygame.transform.rotate(self.original_image, -self.angle - 90)
+            self.angle += 1
+            self.rotation_angle += 1
+            # screen.fill('white')
+            all_sprites.draw(screen)
+            pygame.display.flip()
         else:
-            image = image.convert_alpha()
-        return image
+            self.angle -= 1
+
+            self.in_rotation = False
+            self.rotation_angle = 0
+            self.pos = (self.rect.x, self.rect.y)
+            print("aft", self.pos, self.angle)
+
+            self.target_waypoint += 1
+            self.target = Vector2(self.waypoints[self.target_waypoint])
+            self.movement = self.target - self.pos
 
 
-    class Car(pygame.sprite.Sprite):
-        image = original_image =  load_image("enemy_image.png", colorkey="white")
+    def move(self):
+        if self.target_waypoint < len(self.waypoints):
+            self.target = Vector2(self.waypoints[self.target_waypoint])
+            self.movement = self.target - self.pos
+        else:
+            self.kill()
 
-        def __init__(self, *group):
-            super().__init__(*group)
-            self.image = Car.image
-            self.rect = self.image.get_rect()
-            self.rect.x = 0
-            self.rect.y = RoY
-            self.i = 0
-            self.direction = 1
-
-        def move(self):
-            if self.rect.x < RoX:
-                self.rect.x += self.direction
-            elif self.i < 90:
-                self.i += 1
-                pygame.time.wait(1)
-                angle = (self.i - 90) * math.pi / 180
-                self.rect.x = w * math.cos(angle) + RoX
-                self.rect.y = w * math.sin(angle) + RoY + w
-                self.image = pygame.transform.rotate(self.original_image, -self.i)
-
+        dist = self.movement.length()
+        if self.in_rotation:
+            self.rotate_right(60)
+        else:
+            if dist >= self.speed:
+                if self.target_waypoint < len(self.waypoints) - 1 and dist < 60:
+                    self.in_rotation = True
+                    self.rotation_x = self.rect.x
+                    self.rotation_y = self.rect.y
+                    print('Rotation BEGINS')
+                else:
+                    self.pos += self.movement.normalize() * self.speed
             else:
-                self.rect.y += self.direction
-            # self.target = (self.waypoints[self.target_waypoint])
+                if dist:
+                    self.pos += self.movement.normalize() * dist
+                self.target_waypoint += 1
 
-        def rotate(self):
-            dist = self.target - self.pos
-            self.angle = math.degrees(math.atan2(-dist[1], dist[0]))
-
-            self.image = pygame.transform.rotate(self.original_image, self.angle)
-            self.rect = self.image.get_rect()
-            self.rect.center = self.pos
-
-        def update(self):
-            self.move()
-            # self.rotate()
+            self.rect.topleft = self.pos
+        pygame.time.wait(10)
 
 
-    all_sprites = pygame.sprite.Group()
-    car = Car(all_sprites)
+    def update(self):
+        self.move()
 
-    running = True
-    while running:
+waypoints = [(100, RoY), (400, RoY), (400, 400), (200, 400), (200, 200), (300, 200), (300, 300)]
+all_sprites = pygame.sprite.Group()
+car = Car(waypoints)
 
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                running = False
-        screen.fill("white")
-        screen.fill('black', (300, 50, 4, 4))
-        all_sprites.update()
-        all_sprites.draw(screen)
-        pygame.display.flip()
-        pygame.time.wait(5)
+running = True
+while running:
+
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+    # screen.fill("white")
+    for point in waypoints:
+        screen.fill('red', (point[0], point[1], 4, 4))
+
+
+    all_sprites.update()
+    all_sprites.draw(screen)
+    pygame.display.flip()
+    pygame.time.wait(5)
