@@ -39,7 +39,8 @@ class Car(pygame.sprite.Sprite):
         self.target_waypoint = 1
         self.pos = Vector2(self.waypoints[0])
         self.speed = 2
-        self.angle = -90
+
+        self.angle = self.find_angle(self.target_waypoint)
 
         self.original_image = Car.original_image
         self.image = pygame.transform.rotate(self.original_image, self.angle + 90)
@@ -48,6 +49,14 @@ class Car(pygame.sprite.Sprite):
 
         self.in_rotation = False
         self.rotation_angle = 0
+        self.direction = 0
+
+    def find_angle(self, cur_wp):
+        fv = Vector2(self.waypoints[cur_wp][0] - self.waypoints[cur_wp - 1][0],
+                     self.waypoints[cur_wp][1] - self.waypoints[cur_wp - 1][1])
+        sv = Vector2(self.waypoints[cur_wp + 1][0] - self.waypoints[cur_wp][0],
+                     self.waypoints[cur_wp + 1][1] - self.waypoints[cur_wp][1])
+        return sv.angle_to(fv)
 
     def rotate_right(self, rad):
         # print("pre", self.pos, self.angle, self.rotation_angle, self.rect.x, self.rect.y)
@@ -55,16 +64,21 @@ class Car(pygame.sprite.Sprite):
             self.rect.x = rad * math.cos(math.radians(self.angle)) + self.rotation_x
             self.rect.y = rad * math.sin(math.radians(self.angle)) + self.rotation_y
             self.image = pygame.transform.rotate(self.original_image, -self.angle - 90)
-            self.angle += 1
-            self.rotation_angle += 1
+            # self.angle = (self.angle + self.direction) % 360
+            self.angle = (self.angle + self.direction) % 360
+            print(self.angle, self.direction)
+
+            # print('angle', self.angle)
+            self.rotation_angle = (self.rotation_angle + 1) % 360
             # screen.fill('white')
             all_sprites.draw(screen)
             pygame.display.flip()
         else:
-            self.angle -= 1
+            # self.angle -= 1
 
             self.in_rotation = False
             self.rotation_angle = 0
+
             self.pos = (self.rect.x, self.rect.y)
             print("aft", self.pos, self.angle)
 
@@ -91,7 +105,26 @@ class Car(pygame.sprite.Sprite):
                     next_wp = self.waypoints[self.target_waypoint + 1]
                     signs = ((next_wp[0] - prev_wp[0]) // abs(next_wp[0] - prev_wp[0]),
                              (next_wp[1] - prev_wp[1]) // abs(next_wp[1] - prev_wp[1]))
-                    res_signs = {(1, 1): (-1, 1), (1, -1): (1, 1), (-1, 1): (-1, -1), (-1, -1): (1, -1)}[signs]
+                    clockw_signs = {(1, 1): (-1, 1), (1, -1): (1, 1), (-1, 1): (-1, -1), (-1, -1): (1, -1)}
+                    anticlockw_signs = {(1, 1): (1, -1), (1, -1): (-1, -1), (-1, 1): (1, 1), (-1, -1): (-1, 1)}
+                    cross_product = (prev_wp[0] - this_wp[0]) * (next_wp[1] - this_wp[1]) - \
+                                    (next_wp[0] - this_wp[0]) * (prev_wp[1] - this_wp[1])
+                    res_signs = anticlockw_signs[signs]
+
+                    if cross_product < 0:
+                        res_signs = clockw_signs[signs]
+                        if self.direction == -1:
+                            self.angle = 180
+                        self.direction = 1
+
+
+                    elif cross_product >= 0:
+                        res_signs = anticlockw_signs[signs]
+                        if self.direction == 1:
+                            self.angle = 180
+                        self.direction = -1
+
+                    print('direction', self.direction)
                     self.rotation_x = this_wp[0] + w * res_signs[0]
                     self.rotation_y = this_wp[1] + w * res_signs[1]
                 else:
@@ -108,7 +141,7 @@ class Car(pygame.sprite.Sprite):
         self.move()
 
 
-waypoints = [(100, RoY), (400, RoY), (400, 400), (200, 400), (200, 200), (300, 200), (300, 300)]
+waypoints = [(50, 300), (250, 300), (250, 100), (350, 100), (350, 500), (450, 500), (450, 300), (550, 300)]
 all_sprites = pygame.sprite.Group()
 car = Car(waypoints)
 
