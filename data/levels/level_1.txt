@@ -1,0 +1,4 @@
+data/maps/map_1.tmx
+15
+94
+25
