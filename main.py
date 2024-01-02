@@ -6,10 +6,10 @@ import math
 import pygame
 from pygame.math import Vector2
 
-
 pygame.init()
 size = width, height = 600, 600
 screen = pygame.display.set_mode(size)
+clock = pygame.time.Clock()
 
 
 def load_image(name, colorkey=None):
@@ -29,65 +29,142 @@ def load_image(name, colorkey=None):
     return image
 
 
+path_w = 50
+
+
 class Enemy(pygame.sprite.Sprite):
-        def __init__(self, way_points):
-            super().__init__(all_sprites, enemy_group)
-            self.waypoints = way_points
-            self.target_waypoint = 1
-            self.pos = Vector2(self.waypoints[0])
-            self.speed = 2
-            self.angle = 0
+    image = original_image = load_image("towerDefense_tile245.png", colorkey=None)
 
-            self.original_image = enemy_image
-            self.image = pygame.transform.rotate(self.original_image, self.angle)
-            self.rect = self.image.get_rect()
-            self.rect.center = self.pos
+    def __init__(self, way_points):
+        super().__init__(all_sprites)
+        self.waypoints = way_points
+        self.target_waypoint = 1
+        self.pos = Vector2(self.waypoints[0])
+        self.speed = 2
 
-        def update(self):
-            self.move()
-            self.rotate()
+        self.angle = self.find_angle(self.target_waypoint)
+        self.in_rotation = False
+        self.rotation_angle = 0
+        self.direction = 0
+        self.rotation_values()
 
-        def move(self):
-            if self.target_waypoint < len(self.waypoints):
-                self.target = Vector2(self.waypoints[self.target_waypoint])
-                self.movement = self.target - self.pos
-            else:
-                self.kill()
-            dist = self.movement.length()
+        self.original_image = Enemy.original_image
+        self.image = pygame.transform.rotate(self.original_image, -self.angle - 90 * self.direction)
+        self.rect = self.image.get_rect()
+        self.rect.centery = self.pos[1]
+
+    def find_angle(self, cur_wp):
+        prev, curr, next = self.waypoints[cur_wp - 1], self.waypoints[cur_wp], self.waypoints[cur_wp + 1]
+        if next[0] < prev[0] and next[0] < curr[0]:
+            return 0
+        if next[1] < prev[1] and next[1] < curr[1]:
+            return 90
+        if next[0] > prev[0] and next[0] > curr[0]:
+            return 180
+        if next[1] > prev[1] and next[1] > curr[1]:
+            return 270
+
+        # fv = Vector2(self.waypoints[cur_wp][0] - self.waypoints[cur_wp - 1][0],
+        #              self.waypoints[cur_wp][1] - self.waypoints[cur_wp - 1][1])
+        # sv = Vector2(self.waypoints[cur_wp + 1][0] - self.waypoints[cur_wp][0],
+        #              self.waypoints[cur_wp + 1][1] - self.waypoints[cur_wp][1])
+        # return fv.angle_to(sv)
+
+    def rotate_right(self, rad):
+        if self.rotation_angle < 45:
+            self.rect.centerx = rad * math.cos(math.radians(self.angle)) + self.rotation_x
+            self.rect.centery = rad * math.sin(math.radians(self.angle)) + self.rotation_y
+            self.image = pygame.transform.rotate(self.original_image, -self.angle - 90 * self.direction)
+            self.angle = (self.angle + self.direction * 2) % 360
+
+            self.rotation_angle = (self.rotation_angle + 1) % 360
+            pygame.display.flip()
+        else:
+            self.in_rotation = False
+            # self.angle -= 1
+            # print(-self.angle - 90 * self.direction, self.rotation_angle)
+            self.image = pygame.transform.rotate(self.original_image, -self.angle - 90 * self.direction)
+            self.rotation_angle = 0
+
+            self.pos = (self.rect.centerx, self.rect.centery)
+
+            self.target_waypoint += 1
+            self.target = Vector2(self.waypoints[self.target_waypoint])
+            self.movement = self.target - self.pos
+
+    def rotation_values(self):
+        prev_wp = self.waypoints[self.target_waypoint - 1]
+        this_wp = self.waypoints[self.target_waypoint]
+        next_wp = self.waypoints[self.target_waypoint + 1]
+        signs = ((next_wp[0] - prev_wp[0]) // abs(next_wp[0] - prev_wp[0]),
+                 (next_wp[1] - prev_wp[1]) // abs(next_wp[1] - prev_wp[1]))
+        clockw_signs = {(1, 1): (-1, 1), (1, -1): (1, 1), (-1, 1): (-1, -1), (-1, -1): (1, -1)}
+        anticlockw_signs = {(1, 1): (1, -1), (1, -1): (-1, -1), (-1, 1): (1, 1), (-1, -1): (-1, 1)}
+        cross_product = (prev_wp[0] - this_wp[0]) * (next_wp[1] - this_wp[1]) - \
+                        (next_wp[0] - this_wp[0]) * (prev_wp[1] - this_wp[1])
+        res_signs = anticlockw_signs[signs]
+
+        if cross_product < 0:
+            res_signs = clockw_signs[signs]
+            if self.direction == -1:
+                self.angle += 180
+            self.direction = 1
+
+
+        elif cross_product >= 0:
+            res_signs = anticlockw_signs[signs]
+            if self.direction == 1:
+                self.angle += 180
+            self.direction = -1
+
+        self.rotation_x = this_wp[0] + path_w * res_signs[0]
+        self.rotation_y = this_wp[1] + path_w * res_signs[1]
+
+    def move(self):
+        if self.target_waypoint < len(self.waypoints):
+            self.target = Vector2(self.waypoints[self.target_waypoint])
+            self.movement = self.target - self.pos
+        else:
+            self.kill()
+
+        dist = self.movement.length()
+        if self.in_rotation:
+            self.rotate_right(path_w)
+        else:
             if dist >= self.speed:
-                self.pos += self.movement.normalize() * self.speed
+                if self.target_waypoint < len(self.waypoints) - 1 and dist < path_w:
+                    self.in_rotation = True
+                    self.rotation_values()
+                else:
+                    self.pos += self.movement.normalize() * self.speed
             else:
                 if dist:
                     self.pos += self.movement.normalize() * dist
                 self.target_waypoint += 1
 
-        def rotate(self):
-            dist = self.target - self.pos
-            self.angle = math.degrees(math.atan2(-dist[1], dist[0]))
-
-            self.image = pygame.transform.rotate(self.original_image, self.angle)
-            self.rect = self.image.get_rect()
             self.rect.center = self.pos
+
+    def update(self):
+        self.move()
 
 
 if __name__ == '__main__':
-    enemy_image = pygame.transform.scale(load_image('enemy_image.png', colorkey='white'), (40, 40))
-    f = open("data/levels.txt", encoding="utf8")
-    levels_enemies = f.readlines()
+    # enemy_image = pygame.transform.scale(load_image('enemy_image.png', colorkey='white'), (40, 40))
+    enemy_image = load_image('enemy_image.png', colorkey='white')
 
     all_sprites = pygame.sprite.Group()
     enemy_group = pygame.sprite.Group()
     running = True
 
-    waypoints = [(0, 320), (160, 320), (160, 160), (280, 160), (280, 440), (400, 440), (400, 320), (600, 320)]
+    # waypoints = [(0, 320), (160, 320), (160, 160), (280, 160), (280, 440), (400, 440), (400, 320), (600, 320)]
+    # waypoints = [(200, 160), (400, 160), (400, 400), (160, 400), (160, 160), (400, 160), (400, 400), (160, 400), (160, 160)]
+    waypoints = [(10, 280), (120, 280), (120, 120), (280, 120), (280, 400), (440, 400), (440, 280), (550, 280)]
     enemies_num = 10
     Enemy(waypoints)
-    fon = pygame.transform.scale(load_image('map1.png'), (600, 600))
+    fon = pygame.transform.scale(load_image('map_1.png'), (600, 600))
 
     enemies_counter = 0
     while running:
-        screen.fill("white")
-        pygame.draw.lines(screen, "grey", False, waypoints)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
@@ -95,4 +172,4 @@ if __name__ == '__main__':
         all_sprites.draw(screen)
         all_sprites.update()
         pygame.display.flip()
-        pygame.time.wait(15)
+        clock.tick(60)
