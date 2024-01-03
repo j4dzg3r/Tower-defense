@@ -1,1 +1,1 @@
-известно что
+Artem Novikov & Grygory Zachepilo

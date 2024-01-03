@@ -1,215 +1,43 @@
-import os
-import sys
-import random
-import math
-
 import pygame
-from pygame.math import Vector2
+
 
 pygame.init()
-size = width, height = 600, 600
+
+size = width, height = 1060, 960
 screen = pygame.display.set_mode(size)
+weapon_group = pygame.sprite.Group()
+foundation_group = pygame.sprite.Group()
+enemy_group = pygame.sprite.Group()
+health_bar_group = pygame.sprite.Group()
+
 clock = pygame.time.Clock()
 
 
-def load_image(name, colorkey=None):
-    fullname = os.path.join('data', name)
-    if not os.path.isfile(fullname):
-        print(f"Файл с изображением '{fullname}' не найден")
-        sys.exit()
-    image = pygame.image.load(fullname)
-
-    if colorkey is not None:
-        image = image.convert()
-        if colorkey == -1:
-            colorkey = image.get_at((0, 0))
-        image.set_colorkey(colorkey)
-    else:
-        image = image.convert_alpha()
-    return image
+from subpackages.map import Map
 
 
-path_w = 60
-
-
-class Enemy(pygame.sprite.Sprite):
-    image = original_image = load_image("towerDefense_tile245.png", colorkey=None)
-
-    def __init__(self, way_points):
-        super().__init__(all_sprites, enemy_group)
-        self.waypoints = way_points
-        self.target_waypoint = 1
-        self.pos = Vector2(self.waypoints[0])
-        self.speed = 2
-
-        self.angle = self.find_angle(self.target_waypoint)
-        self.in_rotation = False
-        self.rotation_angle = 0
-        self.direction = 0
-        self.rotation_values()
-
-        self.original_image = Enemy.original_image
-        self.image = pygame.transform.rotate(self.original_image, -self.angle - 90 * self.direction)
-        self.rect = self.image.get_rect()
-        self.rect.centery = self.pos[1]
-
-        self.healthbar = Healthbar(self.rect.centerx, self.rect.centery)
-        self.HP = 100
-
-    def find_angle(self, cur_wp):
-        prev, curr, next = self.waypoints[cur_wp - 1], self.waypoints[cur_wp], self.waypoints[cur_wp + 1]
-        if next[0] < prev[0] and next[0] < curr[0]:
-            return 0
-        if next[1] < prev[1] and next[1] < curr[1]:
-            return 90
-        if next[0] > prev[0] and next[0] > curr[0]:
-            return 180
-        if next[1] > prev[1] and next[1] > curr[1]:
-            return 270
-
-        # fv = Vector2(self.waypoints[cur_wp][0] - self.waypoints[cur_wp - 1][0],
-        #              self.waypoints[cur_wp][1] - self.waypoints[cur_wp - 1][1])
-        # sv = Vector2(self.waypoints[cur_wp + 1][0] - self.waypoints[cur_wp][0],
-        #              self.waypoints[cur_wp + 1][1] - self.waypoints[cur_wp][1])
-        # return fv.angle_to(sv)
-
-    def rotate_right(self, rad):
-        if self.rotation_angle < 45:
-            self.rect.centerx = rad * math.cos(math.radians(self.angle)) + self.rotation_x
-            self.rect.centery = rad * math.sin(math.radians(self.angle)) + self.rotation_y
-            self.rect = self.image.get_rect(center=self.rect.center)
-            self.image = pygame.transform.rotate(self.original_image, -self.angle - 90 * self.direction)
-            self.angle = (self.angle + self.direction * 2) % 360
-
-            self.rotation_angle = (self.rotation_angle + 1) % 360
-            self.healthbar.rect.center = self.rect.center
-        else:
-            self.in_rotation = False
-            # self.angle -= 4
-            # print(-self.angle - 90 * self.direction, self.rotation_angle)
-            self.image = pygame.transform.rotate(self.original_image, -self.angle - 90 * self.direction)
-            self.rotation_angle = 0
-
-            self.pos = (self.rect.centerx, self.rect.centery)
-
-            self.target_waypoint += 1
-            self.target = Vector2(self.waypoints[self.target_waypoint])
-            self.movement = self.target - self.pos
-
-    def rotation_values(self):
-        prev_wp = self.waypoints[self.target_waypoint - 1]
-        this_wp = self.waypoints[self.target_waypoint]
-        next_wp = self.waypoints[self.target_waypoint + 1]
-        signs = ((next_wp[0] - prev_wp[0]) // abs(next_wp[0] - prev_wp[0]),
-                 (next_wp[1] - prev_wp[1]) // abs(next_wp[1] - prev_wp[1]))
-        clockw_signs = {(1, 1): (-1, 1), (1, -1): (1, 1), (-1, 1): (-1, -1), (-1, -1): (1, -1)}
-        anticlockw_signs = {(1, 1): (1, -1), (1, -1): (-1, -1), (-1, 1): (1, 1), (-1, -1): (-1, 1)}
-        cross_product = (prev_wp[0] - this_wp[0]) * (next_wp[1] - this_wp[1]) - \
-                        (next_wp[0] - this_wp[0]) * (prev_wp[1] - this_wp[1])
-        res_signs = anticlockw_signs[signs]
-
-        if cross_product < 0:
-            res_signs = clockw_signs[signs]
-            if self.direction == -1:
-                self.angle += 180
-            self.direction = 1
-
-
-        elif cross_product >= 0:
-            res_signs = anticlockw_signs[signs]
-            if self.direction == 1:
-                self.angle += 180
-            self.direction = -1
-
-        self.rotation_x = this_wp[0] + path_w * res_signs[0]
-        self.rotation_y = this_wp[1] + path_w * res_signs[1]
-
-    def move(self):
-        if self.target_waypoint < len(self.waypoints):
-            self.target = Vector2(self.waypoints[self.target_waypoint])
-            self.movement = self.target - self.pos
-        else:
-            self.healthbar.kill()
-            self.kill()
-
-        dist = self.movement.length()
-        if self.in_rotation:
-            self.rotate_right(path_w)
-        else:
-            if dist >= self.speed:
-                if self.target_waypoint < len(self.waypoints) - 1 and dist < path_w:
-                    self.in_rotation = True
-                    self.rotation_values()
-                    self.rotate_right(path_w)
-                    print('==ROTAION==')
-                else:
-                    self.pos += self.movement.normalize() * self.speed
-            else:
-                if dist:
-                    self.pos += self.movement.normalize() * dist
-                self.target_waypoint += 1
-
-            self.rect.center = self.pos
-            self.healthbar.rect.center = self.rect.center
-        print(self.rect.center, self.angle)
-        # self.get_damage(1)
-
-    def get_damage(self, damage):
-        self.HP -= damage
-        if self.HP <= 0:
-            self.die()
-        self.healthbar.health = self.HP
-        self.healthbar.update()
-
-    def die(self):
-        self.healthbar.kill()
-        self.kill()
-
-    def update(self):
-        self.move()
-
-
-class Healthbar(pygame.sprite.Sprite):
-    def __init__(self, x, y) -> None:
-        super().__init__(all_sprites, healthbar_group)
-        self.health = 100
-        self.rad = 44
-        self.image = pygame.Surface((self.rad, self.rad), pygame.SRCALPHA, 32)
-        pygame.draw.arc(self.image, "green", (0, 0, self.rad, self.rad), math.radians(90),
-                        math.radians(self.health * 3.6 + 90), 2)
-        # pygame.draw.circle(self.image, "red", (15, 15), 15, 1)
-
-        self.rect = pygame.Rect(x, y, self.rad, self.rad)
-
-    def update(self):
-        self.image = pygame.Surface((self.rad, self.rad), pygame.SRCALPHA)
-        pygame.draw.arc(self.image, "green", (0, 0, self.rad, self.rad), math.radians(90),
-                        math.radians(self.health * 3.6 + 90), 2)
-
-
-if __name__ == '__main__':
-    # enemy_image = pygame.transform.scale(load_image('enemy_image.png', colorkey='white'), (40, 40))
-    enemy_image = load_image('enemy_image.png', colorkey='white')
-
-    all_sprites = pygame.sprite.Group()
-    enemy_group = pygame.sprite.Group()
-    healthbar_group = pygame.sprite.Group()
+def main():
     running = True
 
-    # waypoints = [(0, 320), (160, 320), (160, 160), (280, 160), (280, 440), (400, 440), (400, 320), (600, 320)]
-    # waypoints = [(200, 160), (400, 160), (400, 400), (160, 400), (160, 160), (400, 160), (400, 400), (160, 400), (160, 160)]
-    waypoints = [(10, 280), (120, 280), (120, 120), (280, 120), (280, 400), (440, 400), (440, 280), (550, 280)]
-    enemies_num = 10
-    Enemy(waypoints)
-    fon = pygame.transform.scale(load_image('map_1.png'), (600, 600))
+    map = Map("data/levels/level_1.txt", weapon_group, foundation_group, enemy_group, health_bar_group)
 
-    enemies_counter = 0
     while running:
+        screen.fill("green")
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
-        screen.blit(fon, (0, 0))
-        all_sprites.draw(screen)
-        all_sprites.update()
+            if event.type == pygame.MOUSEBUTTONUP and event.button == 1:
+                mouse_pos = pygame.mouse.get_pos()
+                map.process_click(mouse_pos, weapon_group, foundation_group)
+
+        map.render(screen)
+        enemy_group.draw(screen)
+        health_bar_group.draw(screen)
+        weapon_group.update(screen, enemy_group)
+        foundation_group.draw(screen)
+        weapon_group.draw(screen)
         pygame.display.flip()
         clock.tick(60)
+
+if __name__ == '__main__':
+    main()
