@@ -1,0 +1,22 @@
+from typing import Any
+import sys
+import os
+
+from pygame import image as pyimage, Surface
+
+
+def load_image(name: str, colorkey: Any = None) -> Surface:
+    fullname = os.path.join('data', name)
+    if not os.path.isfile(fullname):
+        print(f"Файл с изображением '{fullname}' не найден")
+        sys.exit()
+    image = pyimage.load(fullname)
+
+    if colorkey is not None:
+        image = image.convert()
+        if colorkey == -1:
+            colorkey = image.get_at((0, 0))
+        image.set_colorkey(colorkey)
+    else:
+        image = image.convert_alpha()
+    return image
