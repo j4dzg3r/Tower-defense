@@ -8,6 +8,7 @@ screen = pygame.display.set_mode(size)
 weapon_group = pygame.sprite.Group()
 foundation_group = pygame.sprite.Group()
 enemy_group = pygame.sprite.Group()
+health_bar_group = pygame.sprite.Group()
 
 clock = pygame.time.Clock()
 
@@ -18,7 +19,7 @@ from subpackages.map import Map
 def main():
     running = True
 
-    map = Map("data/levels/level_1.txt", weapon_group, foundation_group, enemy_group)
+    map = Map("data/levels/level_1.txt", weapon_group, foundation_group, enemy_group, health_bar_group)
 
     while running:
         screen.fill("green")
@@ -31,6 +32,7 @@ def main():
 
         map.render(screen)
         enemy_group.draw(screen)
+        health_bar_group.draw(screen)
         weapon_group.update(screen, enemy_group)
         foundation_group.draw(screen)
         weapon_group.draw(screen)

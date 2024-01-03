@@ -1,22 +1,40 @@
-import os
-import sys
-import random
 import math
 
-import pygame
 from pygame.math import Vector2
+from pygame import sprite
+from pygame import transform
+from pygame import Surface
+from pygame import SRCALPHA
+from pygame import Rect
+from pygame.draw import arc
+
+from typing import List, Tuple, Dict
 
 from .functions import load_image
 
 
-path_w = 50
+path_w = 60
 
 
-class Enemy(pygame.sprite.Sprite):
-    image = original_image = load_image("enemies/towerDefense_tile245.png")
+class Healthbar(sprite.Sprite):
+    def __init__(self, x, y, health_bar_group: sprite.Group) -> None:
+        super().__init__(health_bar_group)
+        self.health = 100
+        self.image = Surface((40, 40), SRCALPHA)
+        arc(self.image, "green", (0, 0, 40, 40), math.radians(90), math.radians(self.health * 3.6 + 90), 2)
+        # pygame.draw.circle(self.image, "red", (15, 15), 15, 1)
 
-    def __init__(self, way_points, *groups):
-        super().__init__(*groups)
+        self.rect = Rect(x, y, 40, 40)
+
+    def update(self):
+        self.image = Surface((40, 40), SRCALPHA)
+        arc(self.image, "green", (0, 0, 40, 40), math.radians(90), math.radians(self.health * 3.6 + 90), 2)
+
+class Enemy(sprite.Sprite):
+    image = original_image = load_image("enemies/towerDefense_tile245.png", colorkey=None)
+
+    def __init__(self, way_points: List[Tuple[int, int]], enemy_group: sprite.Group, health_bar_group: sprite.Group) -> None:
+        super().__init__(enemy_group)
         self.waypoints = way_points
         self.target_waypoint = 1
         self.pos = Vector2(self.waypoints[0])
@@ -29,11 +47,14 @@ class Enemy(pygame.sprite.Sprite):
         self.rotation_values()
 
         self.original_image = Enemy.original_image
-        self.image = pygame.transform.rotate(self.original_image, -self.angle - 90 * self.direction)
+        self.image = transform.rotate(self.original_image, -self.angle - 90 * self.direction)
         self.rect = self.image.get_rect()
-        self.rect.centery = self.pos[1]
+        self.rect.centery = int(self.pos[1])
 
-    def find_angle(self, cur_wp):
+        self.healthbar = Healthbar(self.rect.centerx, self.rect.centery, health_bar_group)
+        self.HP = 100
+
+    def find_angle(self, cur_wp: int) -> int:
         prev, curr, next = self.waypoints[cur_wp - 1], self.waypoints[cur_wp], self.waypoints[cur_wp + 1]
         if next[0] < prev[0] and next[0] < curr[0]:
             return 0
@@ -43,6 +64,8 @@ class Enemy(pygame.sprite.Sprite):
             return 180
         if next[1] > prev[1] and next[1] > curr[1]:
             return 270
+        
+        return 0
 
         # fv = Vector2(self.waypoints[cur_wp][0] - self.waypoints[cur_wp - 1][0],
         #              self.waypoints[cur_wp][1] - self.waypoints[cur_wp - 1][1])
@@ -54,15 +77,16 @@ class Enemy(pygame.sprite.Sprite):
         if self.rotation_angle < 45:
             self.rect.centerx = rad * math.cos(math.radians(self.angle)) + self.rotation_x
             self.rect.centery = rad * math.sin(math.radians(self.angle)) + self.rotation_y
-            self.image = pygame.transform.rotate(self.original_image, -self.angle - 90 * self.direction)
+            self.image = transform.rotate(self.original_image, -self.angle - 90 * self.direction)
             self.angle = (self.angle + self.direction * 2) % 360
 
             self.rotation_angle = (self.rotation_angle + 1) % 360
+            self.healthbar.rect.center = (self.rect.centerx, self.rect.centery)
         else:
             self.in_rotation = False
-            # self.angle -= 1
+            # self.angle -= 4
             # print(-self.angle - 90 * self.direction, self.rotation_angle)
-            self.image = pygame.transform.rotate(self.original_image, -self.angle - 90 * self.direction)
+            self.image = transform.rotate(self.original_image, -self.angle - 90 * self.direction)
             self.rotation_angle = 0
 
             self.pos = (self.rect.centerx, self.rect.centery)
@@ -77,8 +101,8 @@ class Enemy(pygame.sprite.Sprite):
         next_wp = self.waypoints[self.target_waypoint + 1]
         signs = ((next_wp[0] - prev_wp[0]) // abs(next_wp[0] - prev_wp[0]),
                  (next_wp[1] - prev_wp[1]) // abs(next_wp[1] - prev_wp[1]))
-        clockw_signs = {(1, 1): (-1, 1), (1, -1): (1, 1), (-1, 1): (-1, -1), (-1, -1): (1, -1)}
-        anticlockw_signs = {(1, 1): (1, -1), (1, -1): (-1, -1), (-1, 1): (1, 1), (-1, -1): (-1, 1)}
+        clockw_signs: Dict[Tuple[int, int], Tuple[int, int]] = {(1, 1): (-1, 1), (1, -1): (1, 1), (-1, 1): (-1, -1), (-1, -1): (1, -1)}
+        anticlockw_signs: Dict[Tuple[int, int], Tuple[int, int]] = {(1, 1): (1, -1), (1, -1): (-1, -1), (-1, 1): (1, 1), (-1, -1): (-1, 1)}
         cross_product = (prev_wp[0] - this_wp[0]) * (next_wp[1] - this_wp[1]) - \
                         (next_wp[0] - this_wp[0]) * (prev_wp[1] - this_wp[1])
         res_signs = anticlockw_signs[signs]
@@ -104,6 +128,7 @@ class Enemy(pygame.sprite.Sprite):
             self.target = Vector2(self.waypoints[self.target_waypoint])
             self.movement = self.target - self.pos
         else:
+            self.healthbar.kill()
             self.kill()
 
         dist = self.movement.length()
@@ -114,6 +139,7 @@ class Enemy(pygame.sprite.Sprite):
                 if self.target_waypoint < len(self.waypoints) - 1 and dist < path_w:
                     self.in_rotation = True
                     self.rotation_values()
+                    self.rotate_right(path_w)
                 else:
                     self.pos += self.movement.normalize() * self.speed
             else:
@@ -122,6 +148,21 @@ class Enemy(pygame.sprite.Sprite):
                 self.target_waypoint += 1
 
             self.rect.center = self.pos
+            self.healthbar.rect.center = (self.rect.centerx, self.rect.centery)
+        # self.get_damage(1)
+
+    def get_damage(self, damage):
+        self.HP -= damage
+        if self.HP <= 0:
+            self.die()
+        self.healthbar.health = self.HP
+        self.healthbar.update()
+
+    def die(self):
+        self.healthbar.kill()
+        self.kill()
+
+
 
     def update(self):
         self.move()

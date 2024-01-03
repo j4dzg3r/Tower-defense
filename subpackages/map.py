@@ -35,8 +35,8 @@ class Map:
         self.width = self.map.width
         self.tile_size = self.map.tilewidth
         self.shopping_list = ShoppingMenu()
-        self.weapon_group, self.foundation_group, self.enemy_group = groups
-        Enemy(self.way_points, self.enemy_group)
+        self.weapon_group, self.foundation_group, self.enemy_group, self.health_bar_group = groups
+        Enemy(self.way_points, self.enemy_group, self.health_bar_group)
     
     def render(self, screen: Surface) -> None:
         for y in range(self.height):
