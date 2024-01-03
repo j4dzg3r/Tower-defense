@@ -29,14 +29,14 @@ def load_image(name, colorkey=None):
     return image
 
 
-path_w = 50
+path_w = 60
 
 
 class Enemy(pygame.sprite.Sprite):
     image = original_image = load_image("towerDefense_tile245.png", colorkey=None)
 
     def __init__(self, way_points):
-        super().__init__(all_sprites)
+        super().__init__(all_sprites, enemy_group)
         self.waypoints = way_points
         self.target_waypoint = 1
         self.pos = Vector2(self.waypoints[0])
@@ -52,6 +52,9 @@ class Enemy(pygame.sprite.Sprite):
         self.image = pygame.transform.rotate(self.original_image, -self.angle - 90 * self.direction)
         self.rect = self.image.get_rect()
         self.rect.centery = self.pos[1]
+
+        self.healthbar = Healthbar(self.rect.centerx, self.rect.centery)
+        self.HP = 100
 
     def find_angle(self, cur_wp):
         prev, curr, next = self.waypoints[cur_wp - 1], self.waypoints[cur_wp], self.waypoints[cur_wp + 1]
@@ -78,10 +81,10 @@ class Enemy(pygame.sprite.Sprite):
             self.angle = (self.angle + self.direction * 2) % 360
 
             self.rotation_angle = (self.rotation_angle + 1) % 360
-            pygame.display.flip()
+            self.healthbar.rect.center = (self.rect.centerx, self.rect.centery)
         else:
             self.in_rotation = False
-            # self.angle -= 1
+            # self.angle -= 4
             # print(-self.angle - 90 * self.direction, self.rotation_angle)
             self.image = pygame.transform.rotate(self.original_image, -self.angle - 90 * self.direction)
             self.rotation_angle = 0
@@ -125,6 +128,7 @@ class Enemy(pygame.sprite.Sprite):
             self.target = Vector2(self.waypoints[self.target_waypoint])
             self.movement = self.target - self.pos
         else:
+            self.healthbar.kill()
             self.kill()
 
         dist = self.movement.length()
@@ -135,6 +139,8 @@ class Enemy(pygame.sprite.Sprite):
                 if self.target_waypoint < len(self.waypoints) - 1 and dist < path_w:
                     self.in_rotation = True
                     self.rotation_values()
+                    self.rotate_right(path_w)
+                    print('==ROTAION==')
                 else:
                     self.pos += self.movement.normalize() * self.speed
             else:
@@ -143,9 +149,42 @@ class Enemy(pygame.sprite.Sprite):
                 self.target_waypoint += 1
 
             self.rect.center = self.pos
+            self.healthbar.rect.center = (self.rect.centerx, self.rect.centery)
+        print(self.rect.center, self.angle)
+        # self.get_damage(1)
+
+    def get_damage(self, damage):
+        self.HP -= damage
+        if self.HP <= 0:
+            self.die()
+        self.healthbar.health = self.HP
+        self.healthbar.update()
+
+    def die(self):
+        self.healthbar.kill()
+        self.kill()
+
+
 
     def update(self):
         self.move()
+
+
+class Healthbar(pygame.sprite.Sprite):
+    def __init__(self, x, y) -> None:
+        super().__init__(all_sprites)
+        self.health = 100
+        self.image = pygame.Surface((40, 40), pygame.SRCALPHA, 32)
+        pygame.draw.arc(self.image, "green", (0, 0, 40, 40), math.radians(90), math.radians(self.health * 3.6 + 90), 2)
+        # pygame.draw.circle(self.image, "red", (15, 15), 15, 1)
+
+        self.rect = pygame.Rect(x, y, 40, 40)
+
+    def update(self):
+        self.image = pygame.Surface((40, 40), pygame.SRCALPHA)
+        pygame.draw.arc(self.image, "green", (0, 0, 40, 40), math.radians(90), math.radians(self.health * 3.6 + 90), 2)
+
+
 
 
 if __name__ == '__main__':
@@ -172,4 +211,4 @@ if __name__ == '__main__':
         all_sprites.draw(screen)
         all_sprites.update()
         pygame.display.flip()
-        clock.tick(60)
+        clock.tick(30)
