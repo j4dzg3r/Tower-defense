@@ -77,11 +77,12 @@ class Enemy(pygame.sprite.Sprite):
         if self.rotation_angle < 45:
             self.rect.centerx = rad * math.cos(math.radians(self.angle)) + self.rotation_x
             self.rect.centery = rad * math.sin(math.radians(self.angle)) + self.rotation_y
+            self.rect = self.image.get_rect(center=self.rect.center)
             self.image = pygame.transform.rotate(self.original_image, -self.angle - 90 * self.direction)
             self.angle = (self.angle + self.direction * 2) % 360
 
             self.rotation_angle = (self.rotation_angle + 1) % 360
-            self.healthbar.rect.center = (self.rect.centerx, self.rect.centery)
+            self.healthbar.rect.center = self.rect.center
         else:
             self.in_rotation = False
             # self.angle -= 4
@@ -149,7 +150,7 @@ class Enemy(pygame.sprite.Sprite):
                 self.target_waypoint += 1
 
             self.rect.center = self.pos
-            self.healthbar.rect.center = (self.rect.centerx, self.rect.centery)
+            self.healthbar.rect.center = self.rect.center
         print(self.rect.center, self.angle)
         # self.get_damage(1)
 
@@ -164,27 +165,26 @@ class Enemy(pygame.sprite.Sprite):
         self.healthbar.kill()
         self.kill()
 
-
-
     def update(self):
         self.move()
 
 
 class Healthbar(pygame.sprite.Sprite):
     def __init__(self, x, y) -> None:
-        super().__init__(all_sprites)
+        super().__init__(all_sprites, healthbar_group)
         self.health = 100
-        self.image = pygame.Surface((40, 40), pygame.SRCALPHA, 32)
-        pygame.draw.arc(self.image, "green", (0, 0, 40, 40), math.radians(90), math.radians(self.health * 3.6 + 90), 2)
+        self.rad = 44
+        self.image = pygame.Surface((self.rad, self.rad), pygame.SRCALPHA, 32)
+        pygame.draw.arc(self.image, "green", (0, 0, self.rad, self.rad), math.radians(90),
+                        math.radians(self.health * 3.6 + 90), 2)
         # pygame.draw.circle(self.image, "red", (15, 15), 15, 1)
 
-        self.rect = pygame.Rect(x, y, 40, 40)
+        self.rect = pygame.Rect(x, y, self.rad, self.rad)
 
     def update(self):
-        self.image = pygame.Surface((40, 40), pygame.SRCALPHA)
-        pygame.draw.arc(self.image, "green", (0, 0, 40, 40), math.radians(90), math.radians(self.health * 3.6 + 90), 2)
-
-
+        self.image = pygame.Surface((self.rad, self.rad), pygame.SRCALPHA)
+        pygame.draw.arc(self.image, "green", (0, 0, self.rad, self.rad), math.radians(90),
+                        math.radians(self.health * 3.6 + 90), 2)
 
 
 if __name__ == '__main__':
@@ -193,6 +193,7 @@ if __name__ == '__main__':
 
     all_sprites = pygame.sprite.Group()
     enemy_group = pygame.sprite.Group()
+    healthbar_group = pygame.sprite.Group()
     running = True
 
     # waypoints = [(0, 320), (160, 320), (160, 160), (280, 160), (280, 440), (400, 440), (400, 320), (600, 320)]
@@ -211,4 +212,4 @@ if __name__ == '__main__':
         all_sprites.draw(screen)
         all_sprites.update()
         pygame.display.flip()
-        clock.tick(30)
+        clock.tick(60)
