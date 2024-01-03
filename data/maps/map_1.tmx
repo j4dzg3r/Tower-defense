@@ -9,7 +9,7 @@
    eJyTZGBgkBxAzALEBmiYlUi9UkDMCMRMUMwMxBIk6JXAw6e2XpjfDAnoxRYeTEhYhoA7GNHU08r/+nj8hA9Lo7kP3U8jEQMAigIVxA==
   </data>
  </layer>
- <objectgroup id="3" name="Object Layer 1">
+ <objectgroup id="3" name="Object Layer 1" visible="0">
   <object id="4" x="-19" y="449">
    <polyline points="0,0 211,-1 211,-257 467,-259 467,190 722,191 723,-1 1000,-1"/>
   </object>

@@ -30,7 +30,6 @@ class PukalkaItem(sprite.Sprite):
             screen.blit(self.image, (mouse_pos[0] - 32, mouse_pos[1] - 32))
 
 
-
 class ShoppingMenu():
     def __init__(self) -> None:
         self.shopping_list = Group()

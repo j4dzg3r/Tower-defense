@@ -1,12 +1,16 @@
+from math import degrees, atan2
 from pygame import sprite
 from pygame.sprite import Group
 from pygame.draw import circle
 from pygame import Surface
 from pygame import mask
 from pygame import SRCALPHA
-from pygame import mouse
+from pygame import transform
+from pygame import time
 
-from typing import Any, Tuple
+from typing import Tuple, Optional
+
+from .enemy import Enemy
 
 from .functions import load_image
 
@@ -23,13 +27,18 @@ class DamageRange(sprite.Sprite):
         circle(self.image, "grey100", (32 * 4, 32 * 4), 64 * 2)
         self.image.set_alpha(100)
         self.mask = mask.from_surface(self.image)
+        self.detected_enemy: Optional[Enemy] = None
     
     def update(self, screen: Surface, enemy_group: Group) -> None:
-        self.image.set_alpha(100)
+        self.detected_enemy = None
         for i in enemy_group:
             if sprite.collide_mask(self, i):
-                self.image.set_alpha(255)
+                self.detected_enemy = i
+                break
         screen.blit(self.image, self.rect)
+    
+    def get_detected_enemy(self) -> Optional[Enemy]:
+        return self.detected_enemy
 
 
 class Pukalka(sprite.Sprite):
@@ -37,12 +46,24 @@ class Pukalka(sprite.Sprite):
 
     def __init__(self, coords: Tuple[int, int], weapon_group: Group, foundation_group: Group) -> None:
         super().__init__(weapon_group)
-        self.image = Pukalka.image
+        self.image = transform.rotate(Pukalka.image, 0)
         self.rect = self.image.get_rect()
-        self.rect.topleft = coords
-        self.rect.y -= 8
+        self.rect.topleft = coords[0], coords[1] - 8
         self.foundation = Stoyka(coords, foundation_group)
         self.damage_range = DamageRange(coords, 4)
+        self.damage = 100
+        self.delay = 1000
+        self.last_shot = time.get_ticks() - self.delay
 
     def update(self, screen: Surface, enemy_group: Group) -> None:
         self.damage_range.update(screen, enemy_group)
+        enemy = self.damage_range.get_detected_enemy()
+        if enemy:
+            x_my, y_my = self.rect.center
+            x_e, y_e = enemy.rect.center
+            if x_e - x_my != 0:
+                self.image = transform.rotate(Pukalka.image, degrees(atan2(-(y_e - y_my), (x_e - x_my))) - 90)
+                self.rect = self.image.get_rect(center=(x_my, y_my))
+            if time.get_ticks() - self.last_shot >= self.delay:
+                # enemy.kill()
+                pass
