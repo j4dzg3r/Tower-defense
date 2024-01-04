@@ -12,6 +12,8 @@ from typing import List, Tuple, Dict
 
 from .functions import load_image
 
+from .game_menus.shopping_menu import ShoppingMenu
+
 
 path_w = 60
 
@@ -144,8 +146,7 @@ class Enemy(sprite.Sprite):
 
             self.rect.center = self.pos
             self.healthbar.rect.center = (self.rect.centerx, self.rect.centery)
-        print(self.angle)
-        # self.get_damage(1)
+        # print(f"enemy_angle: {-self.angle - 90 * self.direction}")
 
     def get_damage(self, damage):
         self.HP -= damage
@@ -156,6 +157,7 @@ class Enemy(sprite.Sprite):
 
     def die(self):
         self.healthbar.kill()
+        ShoppingMenu.money += 100
         self.kill()
 
     def update(self):
