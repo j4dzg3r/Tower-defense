@@ -20,7 +20,7 @@ from subpackages.map import Map
 def main():
     running = True
 
-    map = Map("data/levels/level_1.txt", enemy_group, health_bar_group)
+    map = Map("data/levels/level_1.txt", weapon_group, foundation_group, enemy_group, health_bar_group)
 
     while running:
         screen.fill("green")
