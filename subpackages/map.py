@@ -29,8 +29,7 @@ class Map:
                 )
 
             self.num_enemies = int(parsed_level[1])
-            self.road_tiles = list(map(int, parsed_level[2].split()))
-            self.free_tiles = list(map(int, parsed_level[3].split()))
+            self.free_tiles = list(map(int, parsed_level[2].split()))
         self.height = self.map.height
         self.width = self.map.width
         self.tile_size = self.map.tilewidth

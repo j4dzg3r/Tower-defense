@@ -12,6 +12,7 @@ from typing import List, Tuple, Dict
 
 from .functions import load_image
 
+
 path_w = 60
 
 

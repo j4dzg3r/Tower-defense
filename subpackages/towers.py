@@ -1,4 +1,4 @@
-from math import degrees, atan2
+from math import degrees, atan2, sqrt, cos, sin
 from pygame import sprite
 from pygame.sprite import Group
 from pygame.draw import circle
@@ -8,7 +8,7 @@ from pygame import SRCALPHA
 from pygame import transform
 from pygame import time
 
-from typing import Tuple, Optional
+from typing import Any, Tuple, Optional
 
 from .enemy import Enemy
 
@@ -17,11 +17,16 @@ from .functions import load_image
 from .foundations import Stoyka
 
 
-# class Missile(sprite.Sprite):
-#     image = load_image()
-#
-#     def __init__(self, *groups: _Group) -> None:
-#         super().__init__(*groups)
+class Missile(sprite.Sprite):
+    image = load_image("assets/towers/missiles/towerDefense_tile272.png")
+
+    def __init__(self, start_coords: Tuple[int, int], angle: float, *groups: Group) -> None:
+        super().__init__(*groups)
+        self.angle = angle
+        self.coords = start_coords
+    
+    def update(self) -> None:
+        ...
 
 
 class DamageRange(sprite.Sprite):
@@ -49,7 +54,7 @@ class DamageRange(sprite.Sprite):
 
 
 class Pukalka(sprite.Sprite):
-    image = load_image("weapon_images/turret.png")
+    image = load_image("assets/towers/weapons/turret.png")
 
     def __init__(self, coords: Tuple[int, int], weapon_group: Group, foundation_group: Group) -> None:
         super().__init__(weapon_group)
@@ -60,6 +65,7 @@ class Pukalka(sprite.Sprite):
         self.damage_range = DamageRange(coords, 4)
         self.damage = 50
         self.delay = 1000
+        self.speed = 3
         self.last_shot = time.get_ticks() - self.delay
 
     def update(self, screen: Surface, enemy_group: Group) -> None:
@@ -68,9 +74,25 @@ class Pukalka(sprite.Sprite):
         if enemy:
             x_my, y_my = self.rect.center
             x_e, y_e = enemy.rect.center
-            if x_e - x_my != 0:
-                self.image = transform.rotate(Pukalka.image, degrees(atan2(-(y_e - y_my), (x_e - x_my))) - 90)
+            # It is a default rotation
+            # if x_e - x_my != 0:
+            #     self.image = transform.rotate(Pukalka.image, degrees(atan2(-(y_e - y_my), (x_e - x_my))) - 90)
+            #     self.rect = self.image.get_rect(center=(x_my, y_my))
+
+            # Modern rotation
+
+            distance_to_e = sqrt((x_e - x_my) ** 2 + (y_e - y_my) ** 2)
+            time_to_e = distance_to_e / self.speed
+            print(enemy.angle)
+            next_point_e_x = time_to_e * enemy.speed * cos(enemy.angle) + x_e
+            next_point_e_y = (time_to_e * enemy.speed * sin(enemy.angle)) + y_e
+            res_distance_x = next_point_e_x - x_my
+            res_distance_y = next_point_e_y - y_my
+            if res_distance_x != 0:
+                deg = degrees(atan2(-res_distance_y, res_distance_x)) - 90
+                self.image = transform.rotate(Pukalka.image, deg)
                 self.rect = self.image.get_rect(center=(x_my, y_my))
-            if time.get_ticks() - self.last_shot >= self.delay:
-                enemy.get_damage(self.damage)
-                self.last_shot = time.get_ticks()
+
+            # if time.get_ticks() - self.last_shot >= self.delay:
+            #     enemy.get_damage(self.damage)
+            #     self.last_shot = time.get_ticks()
