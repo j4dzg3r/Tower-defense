@@ -7,10 +7,12 @@ from pygame import mask
 from pygame import SRCALPHA
 from pygame import transform
 from pygame import time
+from pygame import mouse
 
 from typing import Any, Tuple, Optional
 
 from .enemy import Enemy
+from .game_menus.shopping_menu import ShoppingMenu
 
 from .functions import load_image
 
@@ -33,12 +35,15 @@ class Missile(sprite.Sprite):
         angle = atan2(-(self.target.rect.centery - self.rect.centery), self.target.rect.centerx - self.rect.centerx)
         v_x = cos(angle) * self.speed
         v_y = -sin(angle) * self.speed
-        self.rect.center = self.rect.centerx + v_x, self.rect.centery + v_y 
+        self.rect.center = self.rect.centerx + v_x, self.rect.centery + v_y
         for i in enemy_group:
             if sprite.collide_mask(self, i):
                 i.get_damage(self.damage)
                 self.kill()
                 break
+        if self.target.HP <= 0:
+            self.kill()
+            self.target.die()
 
 
 class DamageRange(sprite.Sprite):
@@ -49,7 +54,7 @@ class DamageRange(sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.center = (coords[0] + 32, coords[1] + 32)
         circle(self.image, "grey100", (32 * d_range, 32 * d_range), 64 * d_range // 2)
-        self.image.set_alpha(100)
+        self.image.set_alpha(0)
         self.mask = mask.from_surface(self.image)
         self.detected_enemy: Optional[Enemy] = None
     
@@ -68,8 +73,10 @@ class DamageRange(sprite.Sprite):
 class Pukalka(sprite.Sprite):
     image = load_image("assets/towers/weapons/turret.png")
 
-    def __init__(self, coords: Tuple[int, int], weapon_group: Group, foundation_group: Group, missile_group: Group) -> None:
+    def __init__(self, coords: Tuple[int, int], price: float, weapon_group: Group, foundation_group: Group, missile_group: Group) -> None:
         super().__init__(weapon_group)
+        self.price = price
+
         self.image = transform.rotate(Pukalka.image, 0)
         self.rect = self.image.get_rect()
         self.rect.topleft = coords[0], coords[1] - 8
@@ -81,8 +88,34 @@ class Pukalka(sprite.Sprite):
         self.last_shot = time.get_ticks() - self.delay
 
         self.missile_group = missile_group
+        self.sell_button_clicked = False
+
+    def show_tower_menu(self, to_show: bool, screen: Surface) -> None:
+        if not to_show:
+            return
+        self.damage_range.image.set_alpha(100)
+        sell_image = load_image("assets/shopping_menu_towers/sell_button.png")
+        r = sell_image.get_rect(center=(self.rect.centerx + 64, self.rect.centery + 64))
+        screen.blit(sell_image, r)
+        
+        if mouse.get_pressed()[0] == 1 and r.collidepoint(mouse.get_pos()):
+            ShoppingMenu.money += self.price / 2
+            self.destoy_self()
 
     def update(self, screen: Surface, enemy_group: Group) -> None:
+        self.damage_range.image.set_alpha(0)
+        self.show_tower_menu(False, screen)
+        if self.sell_button_clicked:
+            self.damage_range.image.set_alpha(100)
+            self.show_tower_menu(True, screen)
+
+        if self.foundation.rect.collidepoint(mouse.get_pos()):
+            self.damage_range.image.set_alpha(100)
+            if mouse.get_pressed()[0] == 1:
+                self.sell_button_clicked = True
+        else:
+            if mouse.get_pressed()[0] == 1:
+                self.sell_button_clicked = False
         self.damage_range.update(screen, enemy_group)
         enemy = self.damage_range.get_detected_enemy()
         if enemy:
@@ -119,3 +152,8 @@ class Pukalka(sprite.Sprite):
                 
                 Missile((x_my, y_my), enemy, self.missile_group)
                 self.last_shot = time.get_ticks()
+    
+    def destoy_self(self) -> None:
+        self.foundation.kill()
+        self.damage_range.kill()
+        self.kill()

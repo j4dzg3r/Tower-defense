@@ -3,7 +3,7 @@ import pygame
 
 pygame.init()
 
-size = width, height = 1100, 960
+size = width, height = 1110, 960
 screen = pygame.display.set_mode(size)
 weapon_group = pygame.sprite.Group()
 foundation_group = pygame.sprite.Group()
