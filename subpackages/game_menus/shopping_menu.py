@@ -74,3 +74,7 @@ class ShoppingMenu():
         self.price[self.selected_item[0]] += 10
         if self.selected_item[0] == "Pukalka":
             PukalkaItem.price += 10
+    
+    def reversed_transaction(self, item: str) -> None:
+        if item == "Pukalka":
+            PukalkaItem.price -= 10

@@ -99,7 +99,8 @@ class Pukalka(sprite.Sprite):
         screen.blit(sell_image, r)
         
         if mouse.get_pressed()[0] == 1 and r.collidepoint(mouse.get_pos()):
-            ShoppingMenu.money += self.price / 2
+            ShoppingMenu.money += 50
+            ShoppingMenu.reversed_transaction(ShoppingMenu(), "Pukalka")
             self.destoy_self()
 
     def update(self, screen: Surface, enemy_group: Group) -> None:

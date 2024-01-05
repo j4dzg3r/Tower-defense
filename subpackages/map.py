@@ -32,7 +32,6 @@ class Map:
             self.num_enemies = int(parsed_level[1])
             self.free_tiles = list(map(int, parsed_level[2].split()))
             self.waves = parsed_level[3].split('; ')
-            self.unfree_cells: List[Tuple[int, int]] = []
 
         self.cur_wave = 0
         self.groups_in_wave = list(map(lambda x: list(map(int, x.split(' * '))), self.waves[self.cur_wave].split(', ')))
@@ -104,9 +103,8 @@ class Map:
 
     def set_tower(self, tower: str, coords: Tuple[int, int], *groups: Group) -> None:
         cell = coords[0] // self.tile_size, coords[1] // self.tile_size
-        if cell not in self.unfree_cells and 0 <= cell[0] < self.width and 0 <= cell[1] < self.height:
+        if cell not in [tuple(map(lambda x: x // 64, i.rect.topleft)) for i in self.foundation_group] and 0 <= cell[0] < self.width and 0 <= cell[1] < self.height:
             if self.get_tile_id(cell) in self.free_tiles:
                 if tower == "Pukalka":
                     if self.shopping_list.create_transaction():
                         towers.Pukalka((cell[0] * self.tile_size, cell[1] * self.tile_size), self.shopping_list.price["Pukalka"], *groups)
-                        self.unfree_cells.append((cell[0], cell[1]))
