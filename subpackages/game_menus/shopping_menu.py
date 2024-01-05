@@ -11,7 +11,7 @@ from ..functions import load_image
 
 class PukalkaItem(sprite.Sprite):
     image = load_image("assets/shopping_menu_towers/Pukalka.png")
-    price = 100.
+    price = 100
 
     def __init__(self, *groups: Group) -> None:
         super().__init__(*groups)
@@ -35,15 +35,15 @@ class PukalkaItem(sprite.Sprite):
             screen.blit(self.image, (mouse_pos[0] - 32, mouse_pos[1] - 32))
     
     def draw_price(self, screen: Surface):
-        screen.blit(Font(None, 40).render(f"{PukalkaItem.price:.2f}", True, (0, 0, 0)), (self.rect.centerx + 30, self.rect.centery - 10))
+        screen.blit(Font(None, 40).render(f"{PukalkaItem.price}", True, (0, 0, 0)), (self.rect.centerx + 30, self.rect.centery - 10))
 
 
 class ShoppingMenu():
-    money = 300.
+    money = 300
 
     def __init__(self) -> None:
         self.shopping_list = Group()
-        self.price: Dict[str, float] = {}
+        self.price: Dict[str, int] = {}
         self.selected_item = [""]
         self.init_list()
     
@@ -58,7 +58,7 @@ class ShoppingMenu():
         self.shopping_list.update(surface, self.selected_item)
     
     def draw_money(self, surface: Surface):
-        surface.blit(Font(None, 30).render(f"money: {ShoppingMenu.money:.2f}", True, (0, 0, 0)), (965, 10))
+        surface.blit(Font(None, 30).render(f"money: {ShoppingMenu.money}", True, (0, 0, 0)), (965, 10))
     
     def get_selected_item(self) -> str:
         return self.selected_item[0]
@@ -71,6 +71,6 @@ class ShoppingMenu():
 
     def transaction_accepted(self) -> None:
         ShoppingMenu.money -= self.price[self.selected_item[0]]
-        self.price[self.selected_item[0]] *= 1.1
+        self.price[self.selected_item[0]] += 10
         if self.selected_item[0] == "Pukalka":
-            PukalkaItem.price *= 1.1
+            PukalkaItem.price += 10
