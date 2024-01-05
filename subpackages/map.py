@@ -58,14 +58,14 @@ class Map:
                     self.cur_wave += 1
                     if self.cur_wave == len(self.waves):
                         self.level_finnished = True
-                        return
-                    self.time_to_wait = self.waves_delay
-                    self.groups_in_wave = list(
-                        map(lambda x: list(map(int, x.split(' * '))), self.waves[self.cur_wave].split(', ')))
-                    self.time_last_spawn = time_now
-                    print('NEW WAVE', self.cur_wave, self.cur_group, self.spawn_in_group,
-                          self.groups_in_wave[self.cur_group],
-                          self.time_to_wait)
+                    else:
+                        self.time_to_wait = self.waves_delay
+                        self.groups_in_wave = list(
+                            map(lambda x: list(map(int, x.split(' * '))), self.waves[self.cur_wave].split(', ')))
+                        self.time_last_spawn = time_now
+                        print('NEW WAVE', self.cur_wave, self.cur_group, self.spawn_in_group,
+                              self.groups_in_wave[self.cur_group],
+                              self.time_to_wait)
 
             elif self.cur_wave < len(
                     self.waves) and time_now - self.time_last_spawn >= self.time_to_wait:
@@ -89,9 +89,10 @@ class Map:
             for x in range(self.width):
                 image = self.map.get_tile_image(x, y, 0)
                 screen.blit(image, (x * self.tile_size, y * self.tile_size))
-
         self.shopping_list.draw(screen)
         self.enemy_group.update()
+        # if self.level_finnished:
+        #     screen.fill((0, 255, 0), (200, 300, 700, 300))
 
     def get_tile_id(self, position: Tuple[int, int]) -> int:
         return self.map.tiledgidmap[self.map.get_tile_gid(*position, 0)]
