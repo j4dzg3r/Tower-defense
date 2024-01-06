@@ -1,4 +1,5 @@
 from math import degrees, atan2, sqrt, cos, sin, radians
+from multiprocessing import set_forkserver_preload
 from pygame import sprite
 from pygame.sprite import Group
 from pygame.draw import circle
@@ -8,6 +9,8 @@ from pygame import SRCALPHA
 from pygame import transform
 from pygame import time
 from pygame import mouse
+
+from itertools import cycle
 
 from typing import Any, Tuple, Optional
 
@@ -80,6 +83,7 @@ class Pukalka(sprite.Sprite):
         self.image = transform.rotate(Pukalka.image, 0)
         self.rect = self.image.get_rect()
         self.rect.topleft = coords[0], coords[1] - 8
+        self.rect_center = self.rect.center
         self.angle = 0
 
         self.foundation = Stoyka(coords, foundation_group)
@@ -89,6 +93,9 @@ class Pukalka(sprite.Sprite):
 
         self.missile_group = missile_group
         self.sell_button_clicked = False
+
+        self.shift_range = iter(cycle((0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1)))
+        self.shift = next(self.shift_range)
 
     def show_tower_menu(self, to_show: bool, screen: Surface) -> None:
         if not to_show:
@@ -118,41 +125,30 @@ class Pukalka(sprite.Sprite):
             if mouse.get_pressed()[0] == 1:
                 self.sell_button_clicked = False
         self.damage_range.update(screen, enemy_group)
+
         enemy = self.damage_range.get_detected_enemy()
+        x_my, y_my = self.rect_center
         if enemy:
-            x_my, y_my = self.rect.center
             x_e, y_e = enemy.rect.center
             # It is a default rotation
             if x_e - x_my != 0:
                 self.angle = degrees(atan2(-(y_e - y_my), (x_e - x_my)))
                 self.image = transform.rotate(Pukalka.image, self.angle - 90)
-                self.rect = self.image.get_rect(center=(x_my, y_my))
-
-            # # Modern rotation
-            # # print("=========")
-            # # print(f"x_e: {x_e}, y_e: {y_e}")
-            # # print(f"x_my: {x_my}, y_my: {y_my}")
-            # # print(f"enemy_angle: {-enemy.angle - 90 * enemy.direction}")
-            # distance_to_e = sqrt((x_e - x_my) ** 2 + (y_e - y_my) ** 2)
-            # # print(f"distance_to_e: {distance_to_e}")
-            # time_to_e = distance_to_e / self.speed
-            # next_point_e_x = time_to_e * enemy.speed * cos(-enemy.angle - 90 * enemy.direction) + x_e
-            # next_point_e_y = -(time_to_e * enemy.speed * sin(-enemy.angle - 90 * enemy.direction)) + y_e
-            # # print(f"next_e_x: {next_point_e_x}, next_e_y: {next_point_e_y}")
-            # res_distance_x = next_point_e_x - x_my
-            # res_distance_y = next_point_e_y - y_my
-            # # print(f"res_dist_x: {res_distance_x}, res_dist_y: {res_distance_y}")
-            # if res_distance_x != 0:
-            #     deg = degrees(atan2(-res_distance_y, res_distance_x)) - 90
-            #     # print(f"res_angle: {deg}")
-            #     # print("=========")
-            #     self.image = transform.rotate(Pukalka.image, deg)
-            #     self.rect = self.image.get_rect(center=(x_my, y_my))
 
             if time.get_ticks() - self.last_shot >= self.delay:
-                
                 Missile((x_my, y_my), enemy, self.missile_group)
                 self.last_shot = time.get_ticks()
+                self.shift = next(self.shift_range)
+        self.rect = self.image.get_rect(center=(x_my, y_my))
+        
+        shift_x = cos(radians(self.angle)) * self.shift
+        shift_y = -sin(radians(self.angle)) * self.shift
+
+        self.rect.centerx -= shift_x
+        self.rect.centery -= shift_y
+
+        if self.shift != 0:
+            self.shift = next(self.shift_range)
     
     def destoy_self(self) -> None:
         self.foundation.kill()
