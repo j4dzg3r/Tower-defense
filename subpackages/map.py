@@ -7,6 +7,8 @@ from pygame import Surface
 from pygame.sprite import Group
 
 from .game_menus.shopping_menu import ShoppingMenu
+from .game_menus.game_end_menu import GameEndMenu
+
 
 from typing import Tuple, List
 
@@ -31,9 +33,8 @@ class Map:
                 )
             )
 
-            self.num_enemies = int(parsed_level[1])
-            self.free_tiles = list(map(int, parsed_level[2].split()))
-            self.waves = parsed_level[3].split('; ')
+            self.free_tiles = list(map(int, parsed_level[1].split()))
+            self.waves = parsed_level[2].split('; ')
             with open(parsed_level[0].rstrip()) as map_tmx:
                 parsed_map = map_tmx.readlines()
                 self.gates = [((int(parsed_map[17].rstrip().split('"')[3]), int(parsed_map[17].rstrip().split('"')[5])),
@@ -52,7 +53,7 @@ class Map:
         self.group_delay = 1500
         self.waves_delay = 4000
         self.time_to_wait = self.spawn_delay
-        self.level_finnished = False
+        self.level_finished = False
 
         self.height = self.map.height
         self.width = self.map.width
@@ -63,15 +64,21 @@ class Map:
 
         for i in range(3):
             Gate(self.gates[i][0], self.gates[i][1], self.gate_group)
+        self.game_end_menu = GameEndMenu()
+        self.game_end_menu_showing = False
 
     def render(self, screen: Surface) -> None:
         time_now = pygame.time.get_ticks()
-        if not self.level_finnished:
+        if not self.level_finished:
+            for enemy in self.enemy_group:
+                if enemy.pos == self.way_points[-1]:
+                    self.game_end_menu_showing = True
+                    self.level_finished = True
             if self.time_to_wait == 0:
                 if len(self.enemy_group) == 0:
                     self.cur_wave += 1
                     if self.cur_wave == len(self.waves):
-                        self.level_finnished = True
+                        self.level_finished = True
                     else:
                         self.time_to_wait = self.waves_delay
                         self.groups_in_wave = list(
@@ -94,11 +101,14 @@ class Map:
                     self.cur_group = 0
                     self.time_to_wait = 0
 
+
         for y in range(self.height):
             for x in range(self.width):
                 image = self.map.get_tile_image(x, y, 0)
                 screen.blit(image, (x * self.tile_size, y * self.tile_size))
         self.shopping_list.draw(screen)
+        if self.game_end_menu_showing:
+            screen.blit(self.game_end_menu.image, (255, 245))
 
     def get_tile_id(self, position: Tuple[int, int]) -> int:
         return self.map.tiledgidmap[self.map.get_tile_gid(*position, 0)]

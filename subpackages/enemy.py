@@ -42,7 +42,7 @@ class Enemy(sprite.Sprite):
         self.waypoints = way_points
         self.target_waypoint = 1
         self.pos = Vector2(self.waypoints[0])
-        self.speed = 2
+        self.speed = 8
 
         self.angle = self.find_angle(self.target_waypoint)
         self.in_rotation = False
@@ -58,6 +58,7 @@ class Enemy(sprite.Sprite):
         self.healthbar = Healthbar(self.rect.centerx, self.rect.centery, health_bar_group)
         self.HP = 100
         self.cost = 100
+        self.gone_to_the_end = False
 
     def find_angle(self, cur_wp: int) -> int:
         prev, curr, next = self.waypoints[cur_wp - 1], self.waypoints[cur_wp], self.waypoints[cur_wp + 1]
@@ -159,12 +160,11 @@ class Enemy(sprite.Sprite):
     def die(self, cause):
         self.healthbar.kill()
         if cause == 'end':
-            # LOSE()
+            self.gone_to_the_end = True
+            print('gone_to_the_end')
             pass
         elif cause == 'tower':
             ShoppingMenu.money += self.cost
-        elif cause == 'gate':
-            pass
         self.kill()
 
     def update(self):

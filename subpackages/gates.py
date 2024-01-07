@@ -29,7 +29,7 @@ class Gate(sprite.Sprite):
         screen.blit(self.image, self.rect)
         for enemy in enemy_group:
             if sprite.collide_mask(self, enemy):
-                enemy.die("gate")
+                enemy.get_damage(100)
                 self.die()
                 break
 

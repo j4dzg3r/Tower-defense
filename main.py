@@ -52,19 +52,16 @@ def main():
                     if event.type == MOUSEBUTTONUP and event.button == 1:
                         mouse_pos = mouse.get_pos()
                         map.process_click(mouse_pos, weapon_group, foundation_group, missile_group)
-
                 map.render(screen)
-                enemy_group.update()
+                if not map.level_finished:
+                    enemy_group.update()
+                    gate_group.update(screen, enemy_group)
+                    missile_group.update(enemy_group)
+                    weapon_group.update(screen, enemy_group)
+
                 enemy_group.draw(screen)
-
-                missile_group.update(enemy_group)
                 missile_group.draw(screen)
-
-                gate_group.update(screen, enemy_group)
-
                 health_bar_group.draw(screen)
-                
-                weapon_group.update(screen, enemy_group)
                 foundation_group.draw(screen)
                 weapon_group.draw(screen)
                 display.flip()
