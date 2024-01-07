@@ -34,8 +34,14 @@ class Map:
             self.num_enemies = int(parsed_level[1])
             self.free_tiles = list(map(int, parsed_level[2].split()))
             self.waves = parsed_level[3].split('; ')
-            self.gate_facing = parsed_level[4][:-1]
-            self.gates_positions = list(map(lambda x: list(map(int, x.split(','))), list(parsed_level[5].split())))
+            with open(parsed_level[0].rstrip()) as map_tmx:
+                parsed_map = map_tmx.readlines()
+                self.gates = [((int(parsed_map[17].rstrip().split('"')[3]), int(parsed_map[17].rstrip().split('"')[5])),
+                               int(parsed_map[19].rstrip().split('"')[5])),
+                              ((int(parsed_map[23].rstrip().split('"')[3]), int(parsed_map[23].rstrip().split('"')[5])),
+                               int(parsed_map[25].rstrip().split('"')[5])),
+                              ((int(parsed_map[29].rstrip().split('"')[3]), int(parsed_map[29].rstrip().split('"')[5])),
+                               int(parsed_map[31].rstrip().split('"')[5]))]
 
         self.cur_wave = 0
         self.groups_in_wave = list(map(lambda x: list(map(int, x.split(' * '))), self.waves[self.cur_wave].split(', ')))
@@ -56,7 +62,7 @@ class Map:
         display.set_mode((self.tile_size * self.width + 150, self.tile_size * self.width))
 
         for i in range(3):
-            Gate(self.gates_positions[i], self.gate_facing, self.gate_group)
+            Gate(self.gates[i][0], self.gates[i][1], self.gate_group)
 
     def render(self, screen: Surface) -> None:
         time_now = pygame.time.get_ticks()
@@ -94,7 +100,6 @@ class Map:
                 screen.blit(image, (x * self.tile_size, y * self.tile_size))
         self.shopping_list.draw(screen)
 
-
     def get_tile_id(self, position: Tuple[int, int]) -> int:
         return self.map.tiledgidmap[self.map.get_tile_gid(*position, 0)]
 
@@ -104,7 +109,8 @@ class Map:
 
     def set_tower(self, tower: str, coords: Tuple[int, int], *groups: Group) -> None:
         cell = coords[0] // self.tile_size, coords[1] // self.tile_size
-        if cell not in [tuple(map(lambda x: x // 64, i.rect.topleft)) for i in self.foundation_group] and 0 <= cell[0] < self.width and 0 <= cell[1] < self.height:
+        if cell not in [tuple(map(lambda x: x // 64, i.rect.topleft)) for i in self.foundation_group] and 0 <= cell[
+            0] < self.width and 0 <= cell[1] < self.height:
             if self.get_tile_id(cell) in self.free_tiles:
                 if tower == "Pukalka":
                     if self.shopping_list.create_transaction():
