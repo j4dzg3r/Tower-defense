@@ -11,15 +11,7 @@ pginit()
 
 size = width, height = 1110, 960
 screen = display.set_mode(size)
-weapon_group = sprite.Group()
-foundation_group = sprite.Group()
-enemy_group = sprite.Group()
-health_bar_group = sprite.Group()
-missile_group = sprite.Group()
-gate_group = sprite.Group()
-
 clock = time.Clock()
-
 
 from typing import Optional
 
@@ -39,6 +31,13 @@ def main():
         try:
             in_game, level_path = game_menu.update(screen)
             if in_game:
+                weapon_group = sprite.Group()
+                foundation_group = sprite.Group()
+                enemy_group = sprite.Group()
+                health_bar_group = sprite.Group()
+                missile_group = sprite.Group()
+                gate_group = sprite.Group()
+
                 map = Map(level_path, weapon_group, foundation_group, enemy_group, health_bar_group, gate_group)
         except QuitError:
             running = False
@@ -48,24 +47,27 @@ def main():
                 for event in pgevent.get():
                     if event.type == QUIT:
                         in_game = False
+                        map.kaput()
+                        del map
                         game_menu.to_game_menu()
+                        break
                     if event.type == MOUSEBUTTONUP and event.button == 1:
                         mouse_pos = mouse.get_pos()
                         map.process_click(mouse_pos, weapon_group, foundation_group, missile_group)
-                map.render(screen)
-                if not map.level_finished:
-                    enemy_group.update()
-                    gate_group.update(screen, enemy_group)
-                    missile_group.update(enemy_group)
-                    weapon_group.update(screen, enemy_group)
-
-                enemy_group.draw(screen)
-                missile_group.draw(screen)
-                health_bar_group.draw(screen)
-                foundation_group.draw(screen)
-                weapon_group.draw(screen)
-                display.flip()
-                clock.tick(60)
+                else:
+                    map.render(screen)
+                    if not map.level_finished:
+                        enemy_group.update()
+                        gate_group.update(screen, enemy_group)
+                        missile_group.update(enemy_group)
+                        weapon_group.update(screen, enemy_group)
+                    enemy_group.draw(screen)
+                    missile_group.draw(screen)
+                    health_bar_group.draw(screen)
+                    foundation_group.draw(screen)
+                    weapon_group.draw(screen)
+                    display.flip()
+                    clock.tick(60)
         display.flip()
         clock.tick(50)
 

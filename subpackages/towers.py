@@ -101,7 +101,7 @@ class Pukalka(sprite.Sprite):
             return
         self.damage_range.image.set_alpha(100)
         sell_image = load_image("assets/shopping_menu_towers/sell_button.png")
-        r = sell_image.get_rect(center=(self.rect.centerx + 64, self.rect.centery + 64))
+        r = sell_image.get_rect(center=(self.foundation.rect.centerx + 64, self.foundation.rect.centery + 64))
         screen.blit(sell_image, r)
         
         if mouse.get_pressed()[0] == 1 and r.collidepoint(mouse.get_pos()):
@@ -110,20 +110,21 @@ class Pukalka(sprite.Sprite):
             self.destoy_self()
 
     def update(self, screen: Surface, enemy_group: Group) -> None:
-        self.damage_range.image.set_alpha(0)
         self.show_tower_menu(False, screen)
+
+        self.damage_range.update(screen, enemy_group)
         if self.sell_button_clicked:
             self.damage_range.image.set_alpha(100)
             self.show_tower_menu(True, screen)
 
         if self.foundation.rect.collidepoint(mouse.get_pos()):
-            self.damage_range.image.set_alpha(100)
             if mouse.get_pressed()[0] == 1:
+                self.damage_range.image.set_alpha(100)
                 self.sell_button_clicked = True
         else:
             if mouse.get_pressed()[0] == 1:
+                self.damage_range.image.set_alpha(0)
                 self.sell_button_clicked = False
-        self.damage_range.update(screen, enemy_group)
 
         enemy = self.damage_range.get_detected_enemy()
         x_my, y_my = self.rect_center

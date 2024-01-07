@@ -36,6 +36,9 @@ class PukalkaItem(sprite.Sprite):
     
     def draw_price(self, screen: Surface):
         screen.blit(Font(None, 40).render(f"{PukalkaItem.price}", True, (0, 0, 0)), (self.rect.centerx + 30, self.rect.centery - 10))
+    
+    def refresh(self):
+        PukalkaItem.price = 100
 
 
 class ShoppingMenu():
@@ -80,3 +83,9 @@ class ShoppingMenu():
         if item == "Pukalka":
             PukalkaItem.price -= 10
             ShoppingMenu.price["Pukalka"] -= 10
+    
+    def refresh(self) -> None:
+        ShoppingMenu.money = 300
+        ShoppingMenu.price = {}
+        for i in self.shopping_list:
+            i.refresh()
