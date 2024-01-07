@@ -46,7 +46,6 @@ class Missile(sprite.Sprite):
                 break
         if self.target.HP <= 0:
             self.kill()
-            self.target.die()
 
 
 class DamageRange(sprite.Sprite):

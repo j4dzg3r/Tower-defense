@@ -57,6 +57,7 @@ class Enemy(sprite.Sprite):
 
         self.healthbar = Healthbar(self.rect.centerx, self.rect.centery, health_bar_group)
         self.HP = 100
+        self.cost = 100
 
     def find_angle(self, cur_wp: int) -> int:
         prev, curr, next = self.waypoints[cur_wp - 1], self.waypoints[cur_wp], self.waypoints[cur_wp + 1]
@@ -126,7 +127,7 @@ class Enemy(sprite.Sprite):
             self.target = Vector2(self.waypoints[self.target_waypoint])
             self.movement = self.target - self.pos
         else:
-            self.die()
+            self.die("end")
 
         dist = self.movement.length()
         if self.in_rotation:
@@ -151,13 +152,19 @@ class Enemy(sprite.Sprite):
     def get_damage(self, damage):
         self.HP -= damage
         if self.HP <= 0:
-            self.die()
+            self.die("tower")
         self.healthbar.health = self.HP
         self.healthbar.update()
 
-    def die(self):
+    def die(self, cause):
         self.healthbar.kill()
-        ShoppingMenu.money += 100
+        if cause == 'end':
+            # LOSE()
+            pass
+        elif cause == 'tower':
+            ShoppingMenu.money += self.cost
+        elif cause == 'gate':
+            pass
         self.kill()
 
     def update(self):

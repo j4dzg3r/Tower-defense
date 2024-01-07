@@ -11,6 +11,7 @@ from typing import Tuple, List
 
 from . import towers
 from .enemy import Enemy
+from .gates import Gate
 
 
 class Map:
@@ -32,6 +33,8 @@ class Map:
             self.num_enemies = int(parsed_level[1])
             self.free_tiles = list(map(int, parsed_level[2].split()))
             self.waves = parsed_level[3].split('; ')
+            self.gate_facing = parsed_level[4][:-1]
+            self.gates_positions = list(map(lambda x: list(map(int, x.split(','))), list(parsed_level[5].split())))
 
         self.cur_wave = 0
         self.groups_in_wave = list(map(lambda x: list(map(int, x.split(' * '))), self.waves[self.cur_wave].split(', ')))
@@ -48,7 +51,10 @@ class Map:
         self.width = self.map.width
         self.tile_size = self.map.tilewidth
         self.shopping_list = ShoppingMenu()
-        self.weapon_group, self.foundation_group, self.enemy_group, self.health_bar_group = groups
+        self.weapon_group, self.foundation_group, self.enemy_group, self.health_bar_group, self.gate_group = groups
+
+        for i in range(3):
+            Gate(self.gates_positions[i], self.gate_facing, self.gate_group)
 
     def render(self, screen: Surface) -> None:
         time_now = pygame.time.get_ticks()
@@ -63,9 +69,6 @@ class Map:
                         self.groups_in_wave = list(
                             map(lambda x: list(map(int, x.split(' * '))), self.waves[self.cur_wave].split(', ')))
                         self.time_last_spawn = time_now
-                        print('NEW WAVE', self.cur_wave, self.cur_group, self.spawn_in_group,
-                              self.groups_in_wave[self.cur_group],
-                              self.time_to_wait)
 
             elif self.cur_wave < len(
                     self.waves) and time_now - self.time_last_spawn >= self.time_to_wait:
@@ -82,17 +85,13 @@ class Map:
                 if self.cur_group == len(self.groups_in_wave):
                     self.cur_group = 0
                     self.time_to_wait = 0
-                print(self.cur_wave, self.cur_group, self.spawn_in_group, self.groups_in_wave[self.cur_group],
-                      self.time_to_wait)
 
         for y in range(self.height):
             for x in range(self.width):
                 image = self.map.get_tile_image(x, y, 0)
                 screen.blit(image, (x * self.tile_size, y * self.tile_size))
         self.shopping_list.draw(screen)
-        self.enemy_group.update()
-        # if self.level_finnished:
-        #     screen.fill((0, 255, 0), (200, 300, 700, 300))
+
 
     def get_tile_id(self, position: Tuple[int, int]) -> int:
         return self.map.tiledgidmap[self.map.get_tile_gid(*position, 0)]
@@ -107,4 +106,5 @@ class Map:
             if self.get_tile_id(cell) in self.free_tiles:
                 if tower == "Pukalka":
                     if self.shopping_list.create_transaction():
-                        towers.Pukalka((cell[0] * self.tile_size, cell[1] * self.tile_size), self.shopping_list.price["Pukalka"], *groups)
+                        towers.Pukalka((cell[0] * self.tile_size, cell[1] * self.tile_size),
+                                       self.shopping_list.price["Pukalka"], *groups)
