@@ -10,13 +10,13 @@ from pygame import QUIT, MOUSEBUTTONUP
 pginit()
 
 size = width, height = 1110, 960
-screen = pygame.display.set_mode(size)
-weapon_group = pygame.sprite.Group()
-foundation_group = pygame.sprite.Group()
-enemy_group = pygame.sprite.Group()
-health_bar_group = pygame.sprite.Group()
-missile_group = pygame.sprite.Group()
-gate_group = pygame.sprite.Group()
+screen = display.set_mode(size)
+weapon_group = sprite.Group()
+foundation_group = sprite.Group()
+enemy_group = sprite.Group()
+health_bar_group = sprite.Group()
+missile_group = sprite.Group()
+gate_group = sprite.Group()
 
 clock = time.Clock()
 
