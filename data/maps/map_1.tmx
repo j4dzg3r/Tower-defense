@@ -15,21 +15,21 @@
   </object>
  </objectgroup>
  <objectgroup id="4" name="gates">
-  <object id="14" x="766.667" y="448">
+  <object id="14" x="800" y="444">
    <properties>
-    <property name="direction" type="bool" value="true"/>
+    <property name="direction" type="int" value="1"/>
    </properties>
    <point/>
   </object>
-  <object id="15" x="830.667" y="448">
+  <object id="15" x="860" y="444">
    <properties>
-    <property name="direction" type="bool" value="true"/>
+    <property name="direction" type="int" value="1"/>
    </properties>
    <point/>
   </object>
-  <object id="16" x="896.667" y="447.333">
+  <object id="16" x="920" y="444">
    <properties>
-    <property name="direction" type="bool" value="true"/>
+    <property name="direction" type="int" value="1"/>
    </properties>
    <point/>
   </object>
