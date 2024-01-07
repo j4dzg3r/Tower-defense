@@ -21,6 +21,11 @@ class ButtonToMainMenu():
         self.image = ButtonToMainMenu.image
         self.rect = self.image.get_rect()
         self.rect.topleft = coords
+        self.is_shown = False
+    
+    def update(self, screen: Surface) -> None:
+        if self.is_shown:
+            screen.blit(self.image, self.rect)
 
 
 class GameMenu():
@@ -44,17 +49,22 @@ class GameMenu():
             ],
             [
                 [1, "data/levels/level_1.txt", None],
-                [2, "data/levels/level_2.txt", None]
+                [2, "data/levels/level_2.txt", None],
+                [3, "data/levels/level_3.txt", None]
             ]
         ]
 
         self.level_counter = 1
+        self.b_to_menu = ButtonToMainMenu((self.fon.get_width() - 150, 30))
 
     def update(self, screen: Surface) -> Tuple[bool, str]:
         res = (False, "")
 
         screen.fill("white")
         screen.blit(self.fon, (0, 0))
+
+        self.b_to_menu.update(screen)
+
         if self.page_num == 0:
             x, y = 50, 100
             screen.blit(self.game_name, self.game_name.get_rect(topleft=(x, y)))
@@ -78,11 +88,11 @@ class GameMenu():
                 x += 60
                 x = (i + 1) * 60 % 300 + 100
                 y = (i + 1) * 60 // 400 + 100
-        
-        b_to_menu: Optional[ButtonToMainMenu] = None
+
         if self.page_num != 0:
-            b_to_menu = ButtonToMainMenu((self.fon.get_width() - 150, 30))
-            screen.blit(b_to_menu.image, (b_to_menu.rect))
+            self.b_to_menu.is_shown = True
+        else:
+            self.b_to_menu.is_shown = False
         
         for event in pgevent.get():
             if event.type == QUIT:
@@ -96,7 +106,7 @@ class GameMenu():
                             i[1] = "black"
                 
             if event.type == MOUSEBUTTONUP:
-                if b_to_menu and b_to_menu.rect.collidepoint(mouse.get_pos()):
+                if self.b_to_menu.is_shown and self.b_to_menu.rect.collidepoint(mouse.get_pos()):
                     self.page_num = 0
                 if self.page_num == 0:
                     if self.pages[0][0][2].collidepoint(mouse.get_pos()):
