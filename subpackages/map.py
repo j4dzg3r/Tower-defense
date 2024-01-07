@@ -2,6 +2,7 @@ import pygame.time
 import pytmx
 import xml.etree.ElementTree as ET
 
+from pygame import display
 from pygame import Surface
 from pygame.sprite import Group
 
@@ -49,6 +50,7 @@ class Map:
         self.tile_size = self.map.tilewidth
         self.shopping_list = ShoppingMenu()
         self.weapon_group, self.foundation_group, self.enemy_group, self.health_bar_group = groups
+        display.set_mode((self.tile_size * self.width + 150, self.tile_size * self.width))
 
     def render(self, screen: Surface) -> None:
         time_now = pygame.time.get_ticks()
