@@ -39,8 +39,7 @@ def main():
         try:
             in_game, level_path = game_menu.update(screen)
             if in_game:
-                print(level_path)
-                map = Map(level_path, weapon_group, foundation_group, enemy_group, health_bar_group)
+                map = Map(level_path, weapon_group, foundation_group, enemy_group, health_bar_group, gate_group)
         except QuitError:
             running = False
         else:

@@ -40,17 +40,18 @@ class PukalkaItem(sprite.Sprite):
 
 class ShoppingMenu():
     money = 300
+    price: Dict[str, int] = {}
 
     def __init__(self) -> None:
         self.shopping_list = Group()
-        self.price: Dict[str, int] = {}
+        
         self.selected_item = [""]
         self.init_list()
     
     def init_list(self) -> None:
         PukalkaItem(self.shopping_list)
         for i in self.shopping_list:
-            self.price[i.name] = i.price
+            ShoppingMenu.price[i.name] = i.price
     
     def draw(self, surface: Surface) -> None:
         self.draw_money(surface)
@@ -64,17 +65,18 @@ class ShoppingMenu():
         return self.selected_item[0]
     
     def create_transaction(self) -> bool:
-        if ShoppingMenu.money >= self.price[self.selected_item[0]]:
+        if ShoppingMenu.money >= ShoppingMenu.price[self.selected_item[0]]:
             self.transaction_accepted()
             return True
         return False
 
     def transaction_accepted(self) -> None:
-        ShoppingMenu.money -= self.price[self.selected_item[0]]
-        self.price[self.selected_item[0]] += 10
+        ShoppingMenu.money -= ShoppingMenu.price[self.selected_item[0]]
+        ShoppingMenu.price[self.selected_item[0]] += 10
         if self.selected_item[0] == "Pukalka":
             PukalkaItem.price += 10
     
     def reversed_transaction(self, item: str) -> None:
         if item == "Pukalka":
             PukalkaItem.price -= 10
+            ShoppingMenu.price["Pukalka"] -= 10
