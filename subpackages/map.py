@@ -115,3 +115,6 @@ class Map:
                     if self.shopping_list.create_transaction():
                         towers.Pukalka((cell[0] * self.tile_size, cell[1] * self.tile_size),
                                        self.shopping_list.price["Pukalka"], *groups)
+    
+    def kaput(self) -> None:
+        self.shopping_list.refresh()
