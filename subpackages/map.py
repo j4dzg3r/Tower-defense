@@ -37,12 +37,12 @@ class Map:
             self.waves = parsed_level[2].split('; ')
             with open(parsed_level[0].rstrip()) as map_tmx:
                 parsed_map = map_tmx.readlines()
-                self.gates = [((int(parsed_map[17].rstrip().split('"')[3]), int(parsed_map[17].rstrip().split('"')[5])),
-                               int(parsed_map[19].rstrip().split('"')[5])),
-                              ((int(parsed_map[23].rstrip().split('"')[3]), int(parsed_map[23].rstrip().split('"')[5])),
-                               int(parsed_map[25].rstrip().split('"')[5])),
-                              ((int(parsed_map[29].rstrip().split('"')[3]), int(parsed_map[29].rstrip().split('"')[5])),
-                               int(parsed_map[31].rstrip().split('"')[5]))]
+                self.gates = [((int(parsed_map[14].rstrip().split('"')[3]), int(parsed_map[14].rstrip().split('"')[5])),
+                               int(parsed_map[16].rstrip().split('"')[5])),
+                              ((int(parsed_map[20].rstrip().split('"')[3]), int(parsed_map[20].rstrip().split('"')[5])),
+                               int(parsed_map[22].rstrip().split('"')[5])),
+                              ((int(parsed_map[26].rstrip().split('"')[3]), int(parsed_map[26].rstrip().split('"')[5])),
+                               int(parsed_map[28].rstrip().split('"')[5]))]
 
         self.cur_wave = 0
         self.groups_in_wave = list(map(lambda x: list(map(int, x.split(' * '))), self.waves[self.cur_wave].split(', ')))
