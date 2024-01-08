@@ -7,8 +7,8 @@
   </data>
  </layer>
  <objectgroup id="3" name="Object Layer 1">
-  <object id="4" x="-19" y="449">
-   <polyline points="0,0 211,0 211,-257 467,-257 467,190 722,190 722,-1 1000,-1"/>
+  <object id="4" x="-64" y="449">
+   <polyline points="0,0 256,0 256,-257 512,-257 512,190 767,190 767,-1 1045,-1"/>
   </object>
  </objectgroup>
  <objectgroup id="4" name="gates">

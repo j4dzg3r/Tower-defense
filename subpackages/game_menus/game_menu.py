@@ -58,8 +58,6 @@ class GameMenu():
         self.b_to_menu = ButtonToMainMenu((self.fon.get_width() - 150, 30))
 
     def update(self, screen: Surface) -> Tuple[bool, str]:
-        res = (False, "")
-
         screen.fill("white")
         screen.blit(self.fon, (0, 0))
 
@@ -115,9 +113,9 @@ class GameMenu():
                     for i in self.pages[1]:
                         if i[2].collidepoint(mouse.get_pos()):
                             if i[0] <= self.level_counter:
-                                res = (True, i[1])
+                                return True, i[1]
         
-        return res
+        return False, ""
 
     def to_game_menu(self) -> None:
         display.set_mode(self.fon.get_size())

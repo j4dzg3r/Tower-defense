@@ -1,8 +1,8 @@
-from typing import Any
+from typing import Any, Tuple
 import sys
 import os
 
-from pygame import image as pyimage, Surface
+from pygame import image as pgimage, Surface
 
 
 def load_image(name: str, colorkey: Any = None) -> Surface:
@@ -10,7 +10,7 @@ def load_image(name: str, colorkey: Any = None) -> Surface:
     if not os.path.isfile(fullname):
         print(f"Файл с изображением '{fullname}' не найден")
         sys.exit()
-    image = pyimage.load(fullname)
+    image = pgimage.load(fullname)
 
     if colorkey is not None:
         image = image.convert()

@@ -7,6 +7,9 @@ from pygame import Surface
 from pygame import SRCALPHA
 from pygame import Rect
 from pygame.draw import arc
+from pygame.time import get_ticks
+
+from itertools import cycle
 
 from typing import List, Tuple, Dict
 
@@ -34,7 +37,7 @@ class Healthbar(sprite.Sprite):
 
 
 class Enemy(sprite.Sprite):
-    image = original_image = load_image("enemies/towerDefense_tile245.png", colorkey=None)
+    images = load_image("assets/enemies/demon.png", colorkey=None)
 
     def __init__(self, way_points: List[Tuple[int, int]], enemy_group: sprite.Group,
                  health_bar_group: sprite.Group) -> None:
@@ -50,14 +53,28 @@ class Enemy(sprite.Sprite):
         self.direction = 0
         self.rotation_values()
 
-        self.original_image = Enemy.original_image
-        self.image = transform.rotate(self.original_image, -self.angle - 90 * self.direction)
+        self.animation_start = get_ticks()
+        self.run_animation = iter(cycle([(i, 128) for i in range(0, 512, 64)]))
+        self.animation_delay = 40
+        self.update_image()
+
+        self.image = Surface((64, 64))
         self.rect = self.image.get_rect()
         self.rect.centery = int(self.pos[1])
 
         self.healthbar = Healthbar(self.rect.centerx, self.rect.centery, health_bar_group)
         self.HP = 100
         self.cost = 100
+
+    def update_image(self) -> None:
+        if get_ticks() - self.animation_start >= self.animation_delay:
+            image_rect = next(self.run_animation)
+            self.image = Surface((64, 64))
+            self.image.blit(Enemy.images, (0, 0), (*image_rect, 64, 64))
+            self.image.set_colorkey("black")
+            self.image = transform.rotate(self.image.copy(), -self.angle - 90 * self.direction - 90)
+            self.rect = self.image.get_rect(center=self.rect.center)
+            self.animation_start = get_ticks()
 
     def find_angle(self, cur_wp: int) -> int:
         prev, curr, next = self.waypoints[cur_wp - 1], self.waypoints[cur_wp], self.waypoints[cur_wp + 1]
@@ -71,19 +88,18 @@ class Enemy(sprite.Sprite):
             return 270
 
     def rotate_right(self, rad):
-        if self.rotation_angle < 45:
+        if self.rotation_angle < 90 // self.speed:
             self.rect.centerx = rad * math.cos(math.radians(self.angle)) + self.rotation_x
             self.rect.centery = rad * math.sin(math.radians(self.angle)) + self.rotation_y
             self.rect = self.image.get_rect(center=self.rect.center)
-            self.image = transform.rotate(self.original_image, -self.angle - 90 * self.direction)
-            self.angle = (self.angle + self.direction * 2) % 360
+            # self.image = transform.rotate(self.original_image, -self.angle - 90 * self.direction)
+            self.angle = (self.angle + self.direction * self.speed) % 360
 
             self.rotation_angle = (self.rotation_angle + 1) % 360
             self.healthbar.rect.center = self.rect.center
         else:
             self.in_rotation = False
-            # self.angle = (self.angle + self.direction * 2) % 360
-            self.image = transform.rotate(self.original_image, -self.angle - 90 * self.direction)
+            # self.image = transform.rotate(self.original_image, -self.angle - 90 * self.direction)
             self.rotation_angle = 0
 
             self.pos = self.rect.center
@@ -91,7 +107,9 @@ class Enemy(sprite.Sprite):
             self.target_waypoint += 1
             self.target = Vector2(self.waypoints[self.target_waypoint])
             self.movement = self.target - self.pos
-
+        
+        self.update_image()
+    
     def rotation_values(self):
         prev_wp = self.waypoints[self.target_waypoint - 1]
         this_wp = self.waypoints[self.target_waypoint]
@@ -123,6 +141,7 @@ class Enemy(sprite.Sprite):
         self.rotation_y = this_wp[1] + path_w * res_signs[1]
 
     def move(self):
+        self.update_image()
         if self.target_waypoint < len(self.waypoints):
             self.target = Vector2(self.waypoints[self.target_waypoint])
             self.movement = self.target - self.pos
