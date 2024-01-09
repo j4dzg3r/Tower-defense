@@ -25,11 +25,10 @@ class Gate(sprite.Sprite):
 
         self.mask = mask.from_surface(self.image)
 
-    def update(self, screen: Surface, enemy_group: Group) -> None:
-        screen.blit(self.image, self.rect)
+    def update(self, enemy_group: Group) -> None:
         for enemy in enemy_group:
             if sprite.collide_mask(self, enemy):
-                enemy.get_damage(100)
+                enemy.die('gate')
                 self.die()
                 break
 

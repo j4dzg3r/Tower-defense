@@ -17,6 +17,7 @@ from typing import Optional
 
 from subpackages.map import Map
 from subpackages.game_menus.game_menu import GameMenu
+from subpackages.game_menus.game_end_menu import GameEndMenu
 from subpackages.errors import QuitError
 
 
@@ -39,6 +40,8 @@ def main():
                 gate_group = sprite.Group()
 
                 map = Map(level_path, weapon_group, foundation_group, enemy_group, health_bar_group, gate_group)
+                game_end_menu = GameEndMenu()
+
         except QuitError:
             running = False
         else:
@@ -58,7 +61,7 @@ def main():
                     map.render(screen)
                     if not map.level_finished:
                         enemy_group.update()
-                        gate_group.update(screen, enemy_group)
+                        gate_group.update(enemy_group)
                         missile_group.update(enemy_group)
                         weapon_group.update(screen, enemy_group)
                     enemy_group.draw(screen)
@@ -66,6 +69,10 @@ def main():
                     health_bar_group.draw(screen)
                     foundation_group.draw(screen)
                     weapon_group.draw(screen)
+                    gate_group.draw(screen)
+                    if map.level_finished:
+                        game_end_menu.update(screen, len(gate_group) - map.lost)
+                        screen.blit(game_end_menu.image, (255, 245))
                     display.flip()
                     clock.tick(60)
         display.flip()

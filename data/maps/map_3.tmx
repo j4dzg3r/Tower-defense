@@ -8,7 +8,7 @@
  </layer>
  <objectgroup id="4" name="Object Layer 1" visible="0">
   <object id="2" x="-27" y="766">
-   <polyline points="0,0 347,-1 347,127 795,127 795,-66 923,-66 923,-517 729,-517 729,-707 472,-707 472,-573 218,-573 218,-381 6,-381"/>
+   <polyline points="0,0 347,0 347,127 795,127 795,-66 923,-66 923,-517 729,-517 729,-707 472,-707 472,-573 218,-573 218,-381 6,-381"/>
   </object>
  </objectgroup>
  <objectgroup id="5" name="Object Layer 2" visible="0">

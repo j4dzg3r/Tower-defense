@@ -7,8 +7,6 @@ from pygame import Surface
 from pygame.sprite import Group
 
 from .game_menus.shopping_menu import ShoppingMenu
-from .game_menus.game_end_menu import GameEndMenu
-
 
 from typing import Tuple, List
 
@@ -54,6 +52,7 @@ class Map:
         self.waves_delay = 4000
         self.time_to_wait = self.spawn_delay
         self.level_finished = False
+        self.lost = False
 
         self.height = self.map.height
         self.width = self.map.width
@@ -64,16 +63,14 @@ class Map:
 
         for i in range(3):
             Gate(self.gates[i][0], self.gates[i][1], self.gate_group)
-        self.game_end_menu = GameEndMenu()
-        self.game_end_menu_showing = False
 
     def render(self, screen: Surface) -> None:
         time_now = pygame.time.get_ticks()
         if not self.level_finished:
             for enemy in self.enemy_group:
                 if enemy.pos == self.way_points[-1]:
-                    self.game_end_menu_showing = True
                     self.level_finished = True
+                    self.lost = True
             if self.time_to_wait == 0:
                 if len(self.enemy_group) == 0:
                     self.cur_wave += 1
@@ -85,8 +82,7 @@ class Map:
                             map(lambda x: list(map(int, x.split(' * '))), self.waves[self.cur_wave].split(', ')))
                         self.time_last_spawn = time_now
 
-            elif self.cur_wave < len(
-                    self.waves) and time_now - self.time_last_spawn >= self.time_to_wait:
+            elif self.cur_wave < len(self.waves) and time_now - self.time_last_spawn >= self.time_to_wait:
                 self.time_to_wait = self.spawn_delay
                 self.time_last_spawn = time_now
                 self.spawn_in_group += 1
@@ -101,14 +97,12 @@ class Map:
                     self.cur_group = 0
                     self.time_to_wait = 0
 
-
         for y in range(self.height):
             for x in range(self.width):
                 image = self.map.get_tile_image(x, y, 0)
                 screen.blit(image, (x * self.tile_size, y * self.tile_size))
-        self.shopping_list.draw(screen)
-        if self.game_end_menu_showing:
-            screen.blit(self.game_end_menu.image, (255, 245))
+        else:
+            self.shopping_list.draw(screen)
 
     def get_tile_id(self, position: Tuple[int, int]) -> int:
         return self.map.tiledgidmap[self.map.get_tile_gid(*position, 0)]
@@ -126,6 +120,6 @@ class Map:
                     if self.shopping_list.create_transaction():
                         towers.Pukalka((cell[0] * self.tile_size, cell[1] * self.tile_size),
                                        self.shopping_list.price["Pukalka"], *groups)
-    
+
     def kaput(self) -> None:
         self.shopping_list.refresh()

@@ -71,19 +71,18 @@ class Enemy(sprite.Sprite):
         else:
             return 270
 
-    def rotate_right(self, rad):
-        if self.rotation_angle < 45:
+    def rotate(self, rad):
+        if self.rotation_angle < 90//self.speed:
             self.rect.centerx = rad * math.cos(math.radians(self.angle)) + self.rotation_x
             self.rect.centery = rad * math.sin(math.radians(self.angle)) + self.rotation_y
             self.rect = self.image.get_rect(center=self.rect.center)
             self.image = transform.rotate(self.original_image, -self.angle - 90 * self.direction)
-            self.angle = (self.angle + self.direction * 2) % 360
+            self.angle = (self.angle + self.direction * self.speed) % 360
 
             self.rotation_angle = (self.rotation_angle + 1) % 360
             self.healthbar.rect.center = self.rect.center
         else:
             self.in_rotation = False
-            # self.angle = (self.angle + self.direction * 2) % 360
             self.image = transform.rotate(self.original_image, -self.angle - 90 * self.direction)
             self.rotation_angle = 0
 
@@ -132,13 +131,13 @@ class Enemy(sprite.Sprite):
 
         dist = self.movement.length()
         if self.in_rotation:
-            self.rotate_right(path_w)
+            self.rotate(path_w)
         else:
             if dist >= self.speed:
                 if self.target_waypoint < len(self.waypoints) - 1 and dist < path_w:
                     self.in_rotation = True
                     self.rotation_values()
-                    self.rotate_right(path_w)
+                    self.rotate(path_w)
                 else:
                     self.pos += self.movement.normalize() * self.speed
             else:
@@ -148,7 +147,6 @@ class Enemy(sprite.Sprite):
 
             self.rect.center = self.pos
             self.healthbar.rect.center = (self.rect.centerx, self.rect.centery)
-        # print(f"enemy_angle: {-self.angle - 90 * self.direction}")
 
     def get_damage(self, damage):
         self.HP -= damage
@@ -158,10 +156,10 @@ class Enemy(sprite.Sprite):
         self.healthbar.update()
 
     def die(self, cause):
+        self.HP = -1
         self.healthbar.kill()
         if cause == 'end':
             self.gone_to_the_end = True
-            print('gone_to_the_end')
             pass
         elif cause == 'tower':
             ShoppingMenu.money += self.cost
