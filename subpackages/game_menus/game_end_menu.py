@@ -10,7 +10,7 @@ from pygame.font import Font
 from pygame.transform import grayscale
 from pygame.time import get_ticks
 from pygame import MOUSEMOTION, MOUSEBUTTONUP
-
+import pygame
 from typing import List, Dict
 
 from ..functions import load_image
@@ -101,6 +101,7 @@ class GameEndMenu(sprite.Sprite):
                 self.image_num += 1
 
         for event in pgevent.get():
+            to_menu = False
             for button in game_end_menu_button_group:
                 if event.type == MOUSEMOTION:
                     if button.rect.collidepoint(mouse.get_pos()):
@@ -110,3 +111,8 @@ class GameEndMenu(sprite.Sprite):
                 if event.type == MOUSEBUTTONUP and button.rect.collidepoint(mouse.get_pos()):
                     if button.type == 'menu':
                         print('to the menu')
+                        to_menu = True
+                        break
+            if to_menu:
+                pygame.event.post(pygame.event.Event(pygame.QUIT))
+                break
