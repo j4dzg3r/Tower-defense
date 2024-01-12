@@ -72,9 +72,15 @@ def main():
                     weapon_group.draw(screen)
                     gate_group.draw(screen)
                     if map.level_finished:
-                        game_end_menu.update(screen, len(gate_group) - map.lost, game_end_menu_button_group)
-                        screen.blit(game_end_menu.image, (255, 245))
-                        game_end_menu_button_group.draw(screen)
+                        try:
+                            game_end_menu.update(screen, len(gate_group) - map.lost, game_end_menu_button_group)
+                            screen.blit(game_end_menu.image, (255, 245))
+                            game_end_menu_button_group.draw(screen)
+                        except QuitError:
+                            in_game = False
+                            map.kaput()
+                            del map
+                            game_menu.to_game_menu()
                     display.flip()
                     clock.tick(60)
         display.flip()
