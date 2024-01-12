@@ -38,6 +38,7 @@ def main():
                 health_bar_group = sprite.Group()
                 missile_group = sprite.Group()
                 gate_group = sprite.Group()
+                game_end_menu_button_group = sprite.Group()
 
                 map = Map(level_path, weapon_group, foundation_group, enemy_group, health_bar_group, gate_group)
                 game_end_menu = GameEndMenu()
@@ -71,8 +72,9 @@ def main():
                     weapon_group.draw(screen)
                     gate_group.draw(screen)
                     if map.level_finished:
-                        game_end_menu.update(screen, len(gate_group) - map.lost)
+                        game_end_menu.update(screen, len(gate_group) - map.lost, game_end_menu_button_group)
                         screen.blit(game_end_menu.image, (255, 245))
+                        game_end_menu_button_group.draw(screen)
                     display.flip()
                     clock.tick(60)
         display.flip()
