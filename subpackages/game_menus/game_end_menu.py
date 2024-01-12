@@ -42,7 +42,7 @@ class GameEndMenu(sprite.Sprite):
     def __init__(self) -> None:
         super().__init__()
         self.rect = Rect(0, 0, 600, 500)
-        self.image = GameEndMenu.frame_image
+        self.image = Surface((600, 500), SRCALPHA)
         self.image.blit(GameEndMenu.frame_image, (0, 0))
         self.original_image = Surface((600, 500), SRCALPHA)
         self.original_image.blit(GameEndMenu.frame_image, (0, 0))
