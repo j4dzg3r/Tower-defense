@@ -6,19 +6,15 @@ from pygame import event as pgevent
 from pygame import mouse
 from pygame import QUIT, MOUSEBUTTONUP
 
-
 pginit()
 
 size = width, height = 1110, 960
 screen = display.set_mode(size)
 clock = time.Clock()
 
-from csv import writer, QUOTE_MINIMAL
 from os.path import exists
 from os import mkdir
 from sqlite3 import connect
-
-from typing import Optional
 
 from subpackages.map import Map
 from subpackages.game_menus.game_menu import GameMenu
@@ -33,8 +29,7 @@ def main():
     #     with open("data/levels_results/results.csv", "w") as csvf:
     #         wr = writer(csvf, delimiter=';', quoting=QUOTE_MINIMAL)
     #         wr.writerow(["level_num", "date", "stars"])
-    
-    
+
     conn = connect("data/levels_results/results.db")
     if not conn.cursor().execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall():
         conn.cursor().execute(
@@ -47,7 +42,6 @@ def main():
             """
         )
         conn.commit()
-        
 
     running = True
 
@@ -138,7 +132,7 @@ def main():
                     clock.tick(60)
         display.flip()
         clock.tick(50)
-    
+
     conn.close()
 
 

@@ -19,9 +19,9 @@ class PukalkaItem(sprite.Sprite):
         self.image = PukalkaItem.image
         self.rect = self.image.get_rect()
         self.rect.center = 990, 100
-        
+
         self.clicked = False
-    
+
     def update(self, screen: Surface, selected_item: List[str]) -> None:
         self.draw_price(screen)
         mouse_pos = mouse.get_pos()
@@ -33,10 +33,11 @@ class PukalkaItem(sprite.Sprite):
             selected_item[0] = ""
         if self.clicked:
             screen.blit(self.image, (mouse_pos[0] - 32, mouse_pos[1] - 32))
-    
+
     def draw_price(self, screen: Surface):
-        screen.blit(Font(None, 40).render(f"{PukalkaItem.price}", True, (0, 0, 0)), (self.rect.centerx + 30, self.rect.centery - 10))
-    
+        screen.blit(Font(None, 40).render(f"{PukalkaItem.price}", True, (0, 0, 0)),
+                    (self.rect.centerx + 30, self.rect.centery - 10))
+
     def refresh(self):
         PukalkaItem.price = 100
 
@@ -47,26 +48,26 @@ class ShoppingMenu():
 
     def __init__(self) -> None:
         self.shopping_list = Group()
-        
+
         self.selected_item = [""]
         self.init_list()
-    
+
     def init_list(self) -> None:
         PukalkaItem(self.shopping_list)
         for i in self.shopping_list:
             ShoppingMenu.price[i.name] = i.price
-    
+
     def draw(self, surface: Surface) -> None:
         self.draw_money(surface)
         self.shopping_list.draw(surface)
         self.shopping_list.update(surface, self.selected_item)
-    
+
     def draw_money(self, surface: Surface):
         surface.blit(Font(None, 30).render(f"money: {ShoppingMenu.money}", True, (0, 0, 0)), (965, 10))
-    
+
     def get_selected_item(self) -> str:
         return self.selected_item[0]
-    
+
     def create_transaction(self) -> bool:
         if ShoppingMenu.money >= ShoppingMenu.price[self.selected_item[0]]:
             self.transaction_accepted()
@@ -78,12 +79,12 @@ class ShoppingMenu():
         ShoppingMenu.price[self.selected_item[0]] += 10
         if self.selected_item[0] == "Pukalka":
             PukalkaItem.price += 10
-    
+
     def reversed_transaction(self, item: str) -> None:
         if item == "Pukalka":
             PukalkaItem.price -= 10
             ShoppingMenu.price["Pukalka"] -= 10
-    
+
     def refresh(self) -> None:
         ShoppingMenu.money = 300
         ShoppingMenu.price = {}

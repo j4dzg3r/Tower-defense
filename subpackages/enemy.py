@@ -17,7 +17,6 @@ from .functions import load_image
 
 from .game_menus.shopping_menu import ShoppingMenu
 
-
 path_w = 60
 
 
