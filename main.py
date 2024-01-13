@@ -13,6 +13,11 @@ size = width, height = 1110, 960
 screen = display.set_mode(size)
 clock = time.Clock()
 
+from csv import writer, QUOTE_MINIMAL
+from os.path import exists
+from os import mkdir
+from sqlite3 import connect
+
 from typing import Optional
 
 from subpackages.map import Map
@@ -22,6 +27,27 @@ from subpackages.errors import QuitError
 
 
 def main():
+    if not exists("data/levels_results"):
+        mkdir("data/levels_results")
+    # if not exists("data/levels_results/results.csv"):
+    #     with open("data/levels_results/results.csv", "w") as csvf:
+    #         wr = writer(csvf, delimiter=';', quoting=QUOTE_MINIMAL)
+    #         wr.writerow(["level_num", "date", "stars"])
+    
+    if not exists("data/levels_results/results.db"):
+        conn = connect("data/levels_results/results.db")
+        conn.cursor().execute(
+            """
+            CREATE TABLE levelsResults (
+                id INTEGER PRIMARY KEY,
+                level_number INTEGER NOT NULL,
+                stars INTEGER NOT NULL
+            );
+            """
+        )
+        conn.commit()
+        conn.close()
+
     running = True
 
     game_menu = GameMenu()
@@ -40,7 +66,7 @@ def main():
                 gate_group = sprite.Group()
                 game_end_menu_button_group = sprite.Group()
 
-                map = Map(level_path, weapon_group, foundation_group, enemy_group, health_bar_group, gate_group)
+                map = Map(level_path, game_menu.level_counter, weapon_group, foundation_group, enemy_group, health_bar_group, gate_group)
                 game_end_menu = GameEndMenu()
 
         except QuitError:
@@ -73,7 +99,7 @@ def main():
                     gate_group.draw(screen)
                     if map.level_finished:
                         try:
-                            game_end_menu.update(screen, len(gate_group) - map.lost, game_end_menu_button_group)
+                            game_end_menu.update(screen, map.score, game_end_menu_button_group)
                             screen.blit(game_end_menu.image, (255, 245))
                             game_end_menu_button_group.draw(screen)
                         except QuitError:
