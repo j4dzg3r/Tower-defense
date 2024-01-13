@@ -1,17 +1,9 @@
 from pygame import sprite, Surface, Rect, SRCALPHA
-from pygame import event as pgevent
-from pygame import mouse
 
 from pygame.sprite import Group
-from pygame.transform import scale
-
 from pygame import mouse
-from pygame.font import Font
 from pygame.transform import grayscale
 from pygame.time import get_ticks
-from pygame import MOUSEMOTION, MOUSEBUTTONUP
-from pygame.mouse import get_pressed
-from typing import List, Dict
 
 from ..functions import load_image
 from ..errors import QuitError
@@ -46,11 +38,8 @@ class GameEndMenu(sprite.Sprite):
         self.image.blit(GameEndMenu.frame_image, (0, 0))
         self.original_image = Surface((600, 500), SRCALPHA)
         self.original_image.blit(GameEndMenu.frame_image, (0, 0))
-        self.name_font = Font(None, 50)
-        self.font = Font(None, 30)
         self.image_num = 0
         self.last_animation = get_ticks()
-        # self.image.set_alpha(230)
         self.alpha_now = 5
         print('New game ned menu')
 
@@ -103,14 +92,16 @@ class GameEndMenu(sprite.Sprite):
                 self.original_image.blit(self.image, (0, 0))
                 self.image_num += 1
 
-            to_menu = False
             for button in game_end_menu_button_group:
-                    if button.rect.collidepoint(mouse.get_pos()):
-                        button.image.blit(button.select_image, (0, 0))
-                        if mouse.get_pressed()[0]:
-                            if button.type == 'menu':
-                                raise QuitError
-                    else:
-                        button.image.blit(button.unselect_image, (0, 0))
+                if button.rect.collidepoint(mouse.get_pos()):
+                    button.image.blit(button.select_image, (0, 0))
+                    if mouse.get_pressed()[0]:
+                        if button.type == 'menu':
+                            raise QuitError
+                        if button.type == 'restart':
+                            print('restarting')
 
+                            break
 
+                else:
+                    button.image.blit(button.unselect_image, (0, 0))

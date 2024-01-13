@@ -101,7 +101,7 @@ class Map:
             for x in range(self.width):
                 image = self.map.get_tile_image(x, y, 0)
                 screen.blit(image, (x * self.tile_size, y * self.tile_size))
-        else:
+        if not self.level_finished:
             self.shopping_list.draw(screen)
 
     def get_tile_id(self, position: Tuple[int, int]) -> int:

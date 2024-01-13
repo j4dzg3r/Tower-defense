@@ -31,7 +31,7 @@ class PukalkaItem(sprite.Sprite):
         elif mouse.get_pressed()[0] == 0:
             self.clicked = False
             selected_item[0] = ""
-        if self.clicked is True:
+        if self.clicked:
             screen.blit(self.image, (mouse_pos[0] - 32, mouse_pos[1] - 32))
     
     def draw_price(self, screen: Surface):
