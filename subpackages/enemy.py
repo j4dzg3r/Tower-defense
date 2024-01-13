@@ -45,8 +45,8 @@ class Enemy(sprite.Sprite):
         self.waypoints = way_points
         self.target_waypoint = 1
         self.pos = Vector2(self.waypoints[0])
-        self.speed = 2
-
+        self.speed = 3.5
+        
         self.angle = self.find_angle(self.target_waypoint)
         self.in_rotation = False
         self.rotation_angle = 0
@@ -64,7 +64,7 @@ class Enemy(sprite.Sprite):
 
         self.healthbar = Healthbar(self.rect.centerx, self.rect.centery, health_bar_group)
         self.HP = 100
-        self.cost = 100
+        self.cost = 20
 
     def update_image(self) -> None:
         if get_ticks() - self.animation_start >= self.animation_delay:

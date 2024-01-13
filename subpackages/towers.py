@@ -1,5 +1,4 @@
-from math import degrees, atan2, sqrt, cos, sin, radians
-from multiprocessing import set_forkserver_preload
+from math import degrees, atan2, cos, sin, radians
 from pygame import sprite
 from pygame.sprite import Group
 from pygame.draw import circle
@@ -12,7 +11,9 @@ from pygame import mouse
 
 from itertools import cycle
 
-from typing import Any, Tuple, Optional
+from random import randint
+
+from typing import Tuple, Optional
 
 from .enemy import Enemy
 from .game_menus.shopping_menu import ShoppingMenu
@@ -27,7 +28,7 @@ class Missile(sprite.Sprite):
 
     def __init__(self, start_coords: Tuple[int, int], enemy: Enemy, *groups: Group) -> None:
         super().__init__(*groups)
-        self.damage = 50
+        self.damage = lambda: randint(5, 10) * 5
         self.speed = 15
         self.target = enemy
         self.image = Missile.image
@@ -41,7 +42,7 @@ class Missile(sprite.Sprite):
         self.rect.center = self.rect.centerx + v_x, self.rect.centery + v_y
         for i in enemy_group:
             if sprite.collide_mask(self, i):
-                i.get_damage(self.damage)
+                i.get_damage(self.damage())
                 self.kill()
                 break
         if self.target.HP <= 0:
