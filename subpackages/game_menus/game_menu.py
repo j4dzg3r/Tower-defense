@@ -8,6 +8,8 @@ from pygame import sprite
 from pygame.draw import circle
 from pygame import QUIT, MOUSEMOTION, MOUSEBUTTONUP, RESIZABLE
 
+from sqlite3 import connect
+
 from typing import List, Tuple, Optional
 
 from ..functions import load_image
@@ -37,6 +39,7 @@ class GameMenu():
 
         self.name_font = Font(None, 50)
         self.font = Font(None, 30)
+        self.small_font = Font(None, 20)
         display.set_mode(self.fon.get_size(), RESIZABLE)
 
         self.game_name = self.name_font.render("Tower Defense", 1, "black")
@@ -75,14 +78,28 @@ class GameMenu():
                 y += 30
 
         elif self.page_num == 1:
+            conn = connect("data/levels_results/results.db")
+            cur = conn.cursor()
+
             x, y = 100, 100
             for i, j in enumerate(self.pages[1]):
+                res = cur.execute(
+                    """
+                    SELECT MAX(stars) FROM levelsResults WHERE level_number = ?
+                    """, 
+                    (j[0], )
+                ).fetchone()
+                stars = ""
+                if res[0] and res[0] > 0:
+                    self.level_counter = i + 2
+                    stars = f"stars: {res[0]}"
                 color = ("red" if j[2] is not None and j[2].collidepoint(mouse.get_pos()) else "pink") \
                             if j[0] <= self.level_counter else "grey"
                 rect = circle(screen, color, (x, y), 25)
                 text = self.font.render(f"{j[0]}", 1, "black")
                 screen.blit(text, text.get_rect(center=rect.center))
                 j[2] = rect
+                screen.blit(self.small_font.render(stars, 1, "black"), (x - 23, y + 26))
                 x += 60
                 x = (i + 1) * 60 % 300 + 100
                 y = (i + 1) * 60 // 400 + 100

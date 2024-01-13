@@ -1,6 +1,8 @@
 import pygame.time
 import pytmx
 import xml.etree.ElementTree as ET
+from csv import writer, QUOTE_MINIMAL
+from sqlite3 import connect
 
 from pygame import display
 from pygame import Surface
@@ -16,7 +18,7 @@ from .gates import Gate
 
 
 class Map:
-    def __init__(self, path_to_level: str, *groups: Group) -> None:
+    def __init__(self, path_to_level: str, level_num, *groups: Group) -> None:
         with open(path_to_level) as level:
             parsed_level = level.readlines()
             self.map = pytmx.load_pygame(parsed_level[0].rstrip())
@@ -51,7 +53,10 @@ class Map:
         self.group_delay = 1500
         self.waves_delay = 4000
         self.time_to_wait = self.spawn_delay
+        self.level_num = level_num
         self.level_finished = False
+        self.result_saved = False
+        self.score = 3
         self.lost = False
 
         self.height = self.map.height
@@ -103,6 +108,30 @@ class Map:
                 screen.blit(image, (x * self.tile_size, y * self.tile_size))
         if not self.level_finished:
             self.shopping_list.draw(screen)
+        
+        self.score = len(self.gate_group) - self.lost
+
+        if self.level_finished and not self.result_saved:
+            win = not self.lost
+            gates = len(self.gate_group)
+            stars = gates + win
+            if stars > 3:
+                stars = 3
+            
+            # with open("data/levels_results/results.csv", 'a') as csvf:
+            #     wr = writer(csvf, delimiter=';', quoting=QUOTE_MINIMAL)
+            #     wr.writerow([self.level_num, str(datetime.now()), stars])
+            conn = connect("data/levels_results/results.db")
+            conn.cursor().execute(
+                """
+                INSERT INTO levelsResults(level_number, stars) VALUES(?, ?)
+                """,
+                (self.level_num, stars)
+            )
+            conn.commit()
+            conn.close()
+
+            self.result_saved = True
 
     def get_tile_id(self, position: Tuple[int, int]) -> int:
         return self.map.tiledgidmap[self.map.get_tile_gid(*position, 0)]
