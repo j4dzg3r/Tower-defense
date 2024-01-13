@@ -50,9 +50,6 @@ class GameEndMenu(sprite.Sprite):
             if result >= 0 and self.level_num < len(listdir('data/levels')):
                 self.next_button = MenuButton('next', game_end_menu_button_group)
                 self.next_button.rect.topleft = (660, 580)
-            # else:
-            # self.tip_button = MenuButton('info', self.game_end_menu_group)
-            # self.tip_button.rect.pos = (130, 300)
             self.restart_button = MenuButton('restart', game_end_menu_button_group)
             self.restart_button.rect.topleft = (530, 580)
             self.levels_button = MenuButton('menu', game_end_menu_button_group)

@@ -91,14 +91,12 @@ class Enemy(sprite.Sprite):
             self.rect.centerx = rad * math.cos(math.radians(self.angle)) + self.rotation_x
             self.rect.centery = rad * math.sin(math.radians(self.angle)) + self.rotation_y
             self.rect = self.image.get_rect(center=self.rect.center)
-            # self.image = transform.rotate(self.original_image, -self.angle - 90 * self.direction)
             self.angle = (self.angle + self.direction * self.speed) % 360
 
             self.rotation_angle = (self.rotation_angle + 1) % 360
             self.healthbar.rect.center = self.rect.center
         else:
             self.in_rotation = False
-            # self.image = transform.rotate(self.original_image, -self.angle - 90 * self.direction)
             self.rotation_angle = 0
 
             self.pos = self.rect.center
@@ -165,7 +163,6 @@ class Enemy(sprite.Sprite):
 
             self.rect.center = self.pos
             self.healthbar.rect.center = (self.rect.centerx, self.rect.centery)
-        # print(f"enemy_angle: {-self.angle - 90 * self.direction}")
 
     def get_damage(self, damage):
         self.HP -= damage
@@ -177,7 +174,6 @@ class Enemy(sprite.Sprite):
     def die(self, cause):
         self.healthbar.kill()
         if cause == 'end':
-            # LOSE()
             pass
         elif cause == 'tower':
             ShoppingMenu.money += self.cost

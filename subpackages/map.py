@@ -119,9 +119,6 @@ class Map:
             if stars > 3:
                 stars = 3
 
-            # with open("data/levels_results/results.csv", 'a') as csvf:
-            #     wr = writer(csvf, delimiter=';', quoting=QUOTE_MINIMAL)
-            #     wr.writerow([self.level_num, str(datetime.now()), stars])
             self.conn.cursor().execute(
                 """
                 INSERT INTO levelsResults(level_number, stars) VALUES(?, ?)
