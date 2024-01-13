@@ -1,3 +1,4 @@
 .venv
 .vscode
 __pycache__/
+data/levels_results/results.db
