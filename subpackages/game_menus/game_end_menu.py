@@ -43,7 +43,7 @@ class GameEndMenu(sprite.Sprite):
         self.alpha_now = 5
         print('New game ned menu')
 
-    def update(self, screen: Surface, result: int, game_end_menu_button_group: Group) -> None:
+    def update(self, screen: Surface, result: int, game_end_menu_button_group: Group) -> str:
         if len(game_end_menu_button_group) == 0:
             if result >= 0:
                 self.next_button = MenuButton('next', game_end_menu_button_group)
@@ -100,8 +100,10 @@ class GameEndMenu(sprite.Sprite):
                             raise QuitError
                         if button.type == 'restart':
                             print('restarting')
-
-                            break
-
+                            return 'restart'
+                        if button.type == 'next':
+                            print('next')
+                            return 'next'
                 else:
                     button.image.blit(button.unselect_image, (0, 0))
+        return ''

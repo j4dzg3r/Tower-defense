@@ -99,7 +99,24 @@ def main():
                     gate_group.draw(screen)
                     if map.level_finished:
                         try:
-                            game_end_menu.update(screen, map.score, game_end_menu_button_group)
+                            gem_answer = game_end_menu.update(screen, map.score, game_end_menu_button_group)
+                            if gem_answer == 'restart':
+                                map.kaput()
+                                del map
+                                game_end_menu.kill()
+
+                                weapon_group = sprite.Group()
+                                foundation_group = sprite.Group()
+                                enemy_group = sprite.Group()
+                                health_bar_group = sprite.Group()
+                                missile_group = sprite.Group()
+                                gate_group = sprite.Group()
+                                game_end_menu_button_group = sprite.Group()
+
+                                map = Map(level_path, game_menu.level_counter, weapon_group, foundation_group,
+                                          enemy_group, health_bar_group, gate_group)
+                                game_end_menu = GameEndMenu()
+
                             screen.blit(game_end_menu.image, (255, 245))
                             game_end_menu_button_group.draw(screen)
                         except QuitError:
