@@ -4,6 +4,7 @@ from pygame.sprite import Group
 from pygame import mouse
 from pygame.transform import grayscale
 from pygame.time import get_ticks
+from os import listdir
 
 from ..functions import load_image
 from ..errors import QuitError
@@ -31,7 +32,7 @@ class GameEndMenu(sprite.Sprite):
     star_images = [load_image(f"assets/game_end_menu/star_{i}.png") for i in range(1, 9)]
     perf_image = load_image("assets/game_end_menu/perfect.png")
 
-    def __init__(self) -> None:
+    def __init__(self, level_num) -> None:
         super().__init__()
         self.rect = Rect(0, 0, 600, 500)
         self.image = Surface((600, 500), SRCALPHA)
@@ -41,11 +42,12 @@ class GameEndMenu(sprite.Sprite):
         self.image_num = 0
         self.last_animation = get_ticks()
         self.alpha_now = 5
-        print('New game ned menu')
+        self.level_num = level_num
 
     def update(self, screen: Surface, result: int, game_end_menu_button_group: Group) -> str:
         if len(game_end_menu_button_group) == 0:
-            if result >= 0:
+            print('fajlov v dir =', len(listdir('data/levels')))
+            if result >= 0 and self.level_num < len(listdir('data/levels')):
                 self.next_button = MenuButton('next', game_end_menu_button_group)
                 self.next_button.rect.topleft = (660, 580)
             # else:
@@ -99,10 +101,8 @@ class GameEndMenu(sprite.Sprite):
                         if button.type == 'menu':
                             raise QuitError
                         if button.type == 'restart':
-                            print('restarting')
                             return 'restart'
                         if button.type == 'next':
-                            print('next')
                             return 'next'
                 else:
                     button.image.blit(button.unselect_image, (0, 0))

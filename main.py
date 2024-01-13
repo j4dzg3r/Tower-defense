@@ -71,7 +71,7 @@ def main():
                           int(level_path.split('/')[-1].split('.')[0].split('_')[1]),
                           conn,
                           weapon_group, foundation_group, enemy_group, health_bar_group, gate_group)
-                game_end_menu = GameEndMenu()
+                game_end_menu = GameEndMenu(map.level_num)
 
         except QuitError:
             running = False
@@ -102,9 +102,11 @@ def main():
                     weapon_group.draw(screen)
                     gate_group.draw(screen)
                     if map.level_finished:
+                        for missile in missile_group:
+                            missile.kill()
                         try:
                             gem_answer = game_end_menu.update(screen, map.score, game_end_menu_button_group)
-                            if gem_answer == 'restart':
+                            if gem_answer == 'restart' or gem_answer == 'next':
                                 map.kaput()
                                 del map
                                 game_end_menu.kill()
@@ -116,10 +118,14 @@ def main():
                                 missile_group = sprite.Group()
                                 gate_group = sprite.Group()
                                 game_end_menu_button_group = sprite.Group()
+                                if gem_answer == 'next':
+                                    print(level_path)
+                                    level_path = level_path[:18] + str(int(level_path[18]) + 1) + level_path[19:]
+                                    print(level_path)
 
                                 map = Map(level_path, int(level_path.split('/')[-1].split('.')[0].split('_')[1]), conn,
                                           weapon_group, foundation_group, enemy_group, health_bar_group, gate_group)
-                                game_end_menu = GameEndMenu()
+                                game_end_menu = GameEndMenu(map.level_num)
 
                             screen.blit(game_end_menu.image, (255, 245))
                             game_end_menu_button_group.draw(screen)
