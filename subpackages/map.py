@@ -2,7 +2,7 @@ import pygame.time
 import pytmx
 import xml.etree.ElementTree as ET
 from csv import writer, QUOTE_MINIMAL
-from sqlite3 import connect
+from sqlite3 import connect, Connection
 
 from pygame import display
 from pygame import Surface
@@ -18,7 +18,9 @@ from .gates import Gate
 
 
 class Map:
-    def __init__(self, path_to_level: str, level_num, *groups: Group) -> None:
+    def __init__(self, path_to_level: str, level_num: int, conn: Connection, *groups: Group) -> None:
+        self.conn = conn
+
         with open(path_to_level) as level:
             parsed_level = level.readlines()
             self.map = pytmx.load_pygame(parsed_level[0].rstrip())
@@ -121,15 +123,13 @@ class Map:
             # with open("data/levels_results/results.csv", 'a') as csvf:
             #     wr = writer(csvf, delimiter=';', quoting=QUOTE_MINIMAL)
             #     wr.writerow([self.level_num, str(datetime.now()), stars])
-            conn = connect("data/levels_results/results.db")
-            conn.cursor().execute(
+            self.conn.cursor().execute(
                 """
                 INSERT INTO levelsResults(level_number, stars) VALUES(?, ?)
                 """,
                 (self.level_num, stars)
             )
-            conn.commit()
-            conn.close()
+            self.conn.commit()
 
             self.result_saved = True
 

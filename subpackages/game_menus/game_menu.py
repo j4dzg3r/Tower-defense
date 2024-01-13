@@ -8,7 +8,7 @@ from pygame import sprite
 from pygame.draw import circle
 from pygame import QUIT, MOUSEMOTION, MOUSEBUTTONUP, RESIZABLE
 
-from sqlite3 import connect
+from sqlite3 import connect, Connection
 
 from typing import List, Tuple, Optional
 
@@ -33,7 +33,9 @@ class ButtonToMainMenu():
 class GameMenu():
     fon = load_image("assets/game_menu/Preview_KenneyNL.png")
 
-    def __init__(self) -> None:
+    def __init__(self, conn: Connection) -> None:
+        self.conn = conn
+
         self.fon = GameMenu.fon
         self.fon.set_alpha(150)
 
@@ -78,8 +80,7 @@ class GameMenu():
                 y += 30
 
         elif self.page_num == 1:
-            conn = connect("data/levels_results/results.db")
-            cur = conn.cursor()
+            cur = self.conn.cursor()
 
             x, y = 100, 100
             for i, j in enumerate(self.pages[1]):

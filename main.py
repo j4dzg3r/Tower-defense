@@ -34,8 +34,9 @@ def main():
     #         wr = writer(csvf, delimiter=';', quoting=QUOTE_MINIMAL)
     #         wr.writerow(["level_num", "date", "stars"])
     
-    if not exists("data/levels_results/results.db"):
-        conn = connect("data/levels_results/results.db")
+    
+    conn = connect("data/levels_results/results.db")
+    if not conn.cursor().execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall():
         conn.cursor().execute(
             """
             CREATE TABLE levelsResults (
@@ -46,11 +47,11 @@ def main():
             """
         )
         conn.commit()
-        conn.close()
+        
 
     running = True
 
-    game_menu = GameMenu()
+    game_menu = GameMenu(conn)
 
     in_game = False
 
@@ -66,7 +67,10 @@ def main():
                 gate_group = sprite.Group()
                 game_end_menu_button_group = sprite.Group()
 
-                map = Map(level_path, game_menu.level_counter, weapon_group, foundation_group, enemy_group, health_bar_group, gate_group)
+                map = Map(level_path,
+                          int(level_path.split('/')[-1].split('.')[0].split('_')[1]),
+                          conn,
+                          weapon_group, foundation_group, enemy_group, health_bar_group, gate_group)
                 game_end_menu = GameEndMenu()
 
         except QuitError:
@@ -113,8 +117,8 @@ def main():
                                 gate_group = sprite.Group()
                                 game_end_menu_button_group = sprite.Group()
 
-                                map = Map(level_path, game_menu.level_counter, weapon_group, foundation_group,
-                                          enemy_group, health_bar_group, gate_group)
+                                map = Map(level_path, int(level_path.split('/')[-1].split('.')[0].split('_')[1]), conn,
+                                          weapon_group, foundation_group, enemy_group, health_bar_group, gate_group)
                                 game_end_menu = GameEndMenu()
 
                             screen.blit(game_end_menu.image, (255, 245))
@@ -128,6 +132,8 @@ def main():
                     clock.tick(60)
         display.flip()
         clock.tick(50)
+    
+    conn.close()
 
 
 if __name__ == '__main__':
