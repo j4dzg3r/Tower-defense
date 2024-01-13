@@ -24,7 +24,7 @@ class ButtonToMainMenu():
         self.rect = self.image.get_rect()
         self.rect.topleft = coords
         self.is_shown = False
-    
+
     def update(self, screen: Surface) -> None:
         if self.is_shown:
             screen.blit(self.image, self.rect)
@@ -87,15 +87,15 @@ class GameMenu():
                 res = cur.execute(
                     """
                     SELECT MAX(stars) FROM levelsResults WHERE level_number = ?
-                    """, 
-                    (j[0], )
+                    """,
+                    (j[0],)
                 ).fetchone()
                 stars = ""
                 if res[0] and res[0] > 0:
                     self.level_counter = i + 2
                     stars = f"stars: {res[0]}"
                 color = ("red" if j[2] is not None and j[2].collidepoint(mouse.get_pos()) else "pink") \
-                            if j[0] <= self.level_counter else "grey"
+                    if j[0] <= self.level_counter else "grey"
                 rect = circle(screen, color, (x, y), 25)
                 text = self.font.render(f"{j[0]}", 1, "black")
                 screen.blit(text, text.get_rect(center=rect.center))
@@ -109,7 +109,7 @@ class GameMenu():
             self.b_to_menu.is_shown = True
         else:
             self.b_to_menu.is_shown = False
-        
+
         for event in pgevent.get():
             if event.type == QUIT:
                 raise QuitError
@@ -120,7 +120,7 @@ class GameMenu():
                             i[1] = "red"
                         else:
                             i[1] = "black"
-                
+
             if event.type == MOUSEBUTTONUP:
                 if self.b_to_menu.is_shown and self.b_to_menu.rect.collidepoint(mouse.get_pos()):
                     self.page_num = 0
@@ -132,7 +132,7 @@ class GameMenu():
                         if i[2].collidepoint(mouse.get_pos()):
                             if i[0] <= self.level_counter:
                                 return True, i[1]
-        
+
         return False, ""
 
     def to_game_menu(self) -> None:

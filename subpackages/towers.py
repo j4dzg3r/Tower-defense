@@ -34,7 +34,7 @@ class Missile(sprite.Sprite):
         self.image = Missile.image
         self.rect = self.image.get_rect(center=start_coords)
         self.mask = mask.from_surface(self.image)
-    
+
     def update(self, enemy_group: Group) -> None:
         angle = atan2(-(self.target.rect.centery - self.rect.centery), self.target.rect.centerx - self.rect.centerx)
         v_x = cos(angle) * self.speed
@@ -60,7 +60,7 @@ class DamageRange(sprite.Sprite):
         self.image.set_alpha(0)
         self.mask = mask.from_surface(self.image)
         self.detected_enemy: Optional[Enemy] = None
-    
+
     def update(self, screen: Surface, enemy_group: Group) -> None:
         self.detected_enemy = None
         for i in enemy_group:
@@ -68,7 +68,7 @@ class DamageRange(sprite.Sprite):
                 self.detected_enemy = i
                 break
         screen.blit(self.image, self.rect)
-    
+
     def get_detected_enemy(self) -> Optional[Enemy]:
         return self.detected_enemy
 
@@ -76,7 +76,8 @@ class DamageRange(sprite.Sprite):
 class Pukalka(sprite.Sprite):
     image = load_image("assets/towers/weapons/turret.png")
 
-    def __init__(self, coords: Tuple[int, int], price: float, weapon_group: Group, foundation_group: Group, missile_group: Group) -> None:
+    def __init__(self, coords: Tuple[int, int], price: float, weapon_group: Group, foundation_group: Group,
+                 missile_group: Group) -> None:
         super().__init__(weapon_group)
         self.price = price
 
@@ -104,7 +105,7 @@ class Pukalka(sprite.Sprite):
         sell_image = load_image("assets/shopping_menu_towers/sell_button.png")
         r = sell_image.get_rect(center=(self.foundation.rect.centerx + 64, self.foundation.rect.centery + 64))
         screen.blit(sell_image, r)
-        
+
         if mouse.get_pressed()[0] == 1 and r.collidepoint(mouse.get_pos()):
             ShoppingMenu.money += 50
             ShoppingMenu.reversed_transaction(ShoppingMenu(), "Pukalka")
@@ -141,7 +142,7 @@ class Pukalka(sprite.Sprite):
                 self.last_shot = time.get_ticks()
                 self.shift = next(self.shift_range)
         self.rect = self.image.get_rect(center=(x_my, y_my))
-        
+
         shift_x = cos(radians(self.angle)) * self.shift
         shift_y = -sin(radians(self.angle)) * self.shift
 
@@ -150,7 +151,7 @@ class Pukalka(sprite.Sprite):
 
         if self.shift != 0:
             self.shift = next(self.shift_range)
-    
+
     def destoy_self(self) -> None:
         self.foundation.kill()
         self.damage_range.kill()

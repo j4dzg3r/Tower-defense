@@ -1,14 +1,8 @@
-from math import degrees, atan2, sqrt, cos, sin, radians
 from pygame import sprite
 from pygame.sprite import Group
-from pygame import Surface
 from pygame import mask
-from pygame import SRCALPHA
-from pygame import transform
-from pygame import time
-from pygame import mouse
 
-from typing import Any, Tuple, Optional, List
+from typing import Tuple
 
 from .functions import load_image
 

@@ -1,8 +1,7 @@
 import pygame.time
 import pytmx
 import xml.etree.ElementTree as ET
-from csv import writer, QUOTE_MINIMAL
-from sqlite3 import connect, Connection
+from sqlite3 import Connection
 
 from pygame import display
 from pygame import Surface
@@ -10,7 +9,7 @@ from pygame.sprite import Group
 
 from .game_menus.shopping_menu import ShoppingMenu
 
-from typing import Tuple, List
+from typing import Tuple
 
 from . import towers
 from .enemy import Enemy
@@ -110,7 +109,7 @@ class Map:
                 screen.blit(image, (x * self.tile_size, y * self.tile_size))
         if not self.level_finished:
             self.shopping_list.draw(screen)
-        
+
         self.score = len(self.gate_group) - self.lost
 
         if self.level_finished and not self.result_saved:
@@ -119,10 +118,7 @@ class Map:
             stars = gates + win
             if stars > 3:
                 stars = 3
-            
-            # with open("data/levels_results/results.csv", 'a') as csvf:
-            #     wr = writer(csvf, delimiter=';', quoting=QUOTE_MINIMAL)
-            #     wr.writerow([self.level_num, str(datetime.now()), stars])
+
             self.conn.cursor().execute(
                 """
                 INSERT INTO levelsResults(level_number, stars) VALUES(?, ?)
