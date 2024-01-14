@@ -56,6 +56,9 @@ class GameMenu():
                 [1, "data/levels/level_1.txt", None],
                 [2, "data/levels/level_2.txt", None],
                 [3, "data/levels/level_3.txt", None]
+            ],
+            [
+                ["Ставь башни, бей демонов! Игра несложная, разберешься."]
             ]
         ]
 
@@ -104,6 +107,9 @@ class GameMenu():
                 x += 60
                 x = (i + 1) * 60 % 300 + 100
                 y = (i + 1) * 60 // 400 + 100
+        elif self.page_num == 2:
+            x, y = 100, 100
+            screen.blit(self.font.render(self.pages[2][0][0], 1, "black"), (x, y))
 
         if self.page_num != 0:
             self.b_to_menu.is_shown = True
@@ -127,6 +133,8 @@ class GameMenu():
                 if self.page_num == 0:
                     if self.pages[0][0][2].collidepoint(mouse.get_pos()):
                         self.page_num = 1
+                    if self.pages[0][1][2].collidepoint(mouse.get_pos()):
+                        self.page_num = 2
                 elif self.page_num == 1:
                     for i in self.pages[1]:
                         if i[2].collidepoint(mouse.get_pos()):
